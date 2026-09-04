@@ -61,6 +61,25 @@ export class ProductService {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
+  async eligibleProduct(principal: Principal, productId: string) {
+    requireRole(principal, ["USER"]);
+    const profile = await this.profiles.findByUserId(principal.id);
+    if (!profile) throw new ProfileIncompleteError();
+    const candidate = await this.products.findActiveById(productId, this.now());
+    if (!candidate) throw new ProductUnavailableError();
+    const reasons = eligibilityReasons(
+      profile,
+      candidate.version.eligibilityConfig,
+    );
+    if (reasons.length) throw new ProductIneligibleError(reasons);
+    return {
+      profile,
+      product: candidate.product,
+      version: candidate.version,
+      premium: calculatePremium(profile, candidate.version.ratingConfig),
+    };
+  }
+
   async catalog(principal: Principal): Promise<ProductCatalogResponseDto> {
     requireRole(principal, ["USER"]);
     const profile = await this.profiles.findByUserId(principal.id);
@@ -80,17 +99,9 @@ export class ProductService {
     productId: string,
   ): Promise<ProductDetailResponseDto> {
     requireRole(principal, ["USER"]);
-    const profile = await this.profiles.findByUserId(principal.id);
-    if (!profile) throw new ProfileIncompleteError();
-    const candidate = await this.products.findActiveById(productId, this.now());
-    if (!candidate) throw new ProductUnavailableError();
-    const reasons = eligibilityReasons(
-      profile,
-      candidate.version.eligibilityConfig,
-    );
-    if (reasons.length) throw new ProductIneligibleError(reasons);
+    const candidate = await this.eligibleProduct(principal, productId);
     return {
-      product: detail(candidate.product, candidate.version, profile),
+      product: detail(candidate.product, candidate.version, candidate.profile),
     };
   }
 }

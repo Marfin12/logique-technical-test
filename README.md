@@ -126,3 +126,8 @@ All eligibility limits, rates, frequency factors, method factors, and rounding s
 - `rules.md` — normative application rules
 - `design.md` — target architecture and data design
 - `plan.md` — phased implementation plan
+## Phase 4: draft applications
+
+Open a product detail page while signed in. Viewing and scrolling remain side-effect free; choosing an insurance type or changing a product-specific field creates one `DRAFT` application. Subsequent edits use optimistic versioning and display `Saving`, `Saved`, or a retryable failure. Drafts can be resumed from `/applications` and `/applications/:id`.
+
+The API uses `POST /api/v1/me/applications/drafts` with an `Idempotency-Key`, `PATCH /api/v1/me/applications/:id/draft` with the current `version`, and owner-only `GET`/`DELETE` endpoints. Dynamic fields are validated against the active product version allow-list; unknown keys and wrong types are rejected. Submission and review actions are intentionally deferred to Phase 5.

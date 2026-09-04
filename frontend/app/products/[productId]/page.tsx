@@ -6,6 +6,7 @@ import { PAYMENT_FREQUENCY_LABELS } from "../../../lib/payment-labels";
 import { formatInsuranceType, formatMoney } from "../../../lib/product-display";
 import { requireUser } from "../../../lib/server-auth";
 import { productDetail } from "../../../lib/server-products";
+import { ProductApplicationForm } from "../../../components/product-application-form";
 
 export const dynamic = "force-dynamic";
 
@@ -131,9 +132,7 @@ export default async function ProductDetailPage({
                   No additional product-specific details.
                 </p>
               )}
-              <p className="mt-4 text-sm text-slate-500">
-                Viewing this page does not create an application or draft.
-              </p>
+              <ProductApplicationForm product={result.product} />
             </section>
           </Panel>
 

@@ -32,12 +32,20 @@ export function AuthenticatedShell({ account, area, children }: ShellProps) {
               {account.displayName}
             </span>
             {area === "user" ? (
-              <Link
-                href="/profile"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
-              >
-                Profile
-              </Link>
+              <div className="flex items-center gap-1">
+                <Link
+                  href="/applications"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                >
+                  Applications
+                </Link>
+                <Link
+                  href="/profile"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                >
+                  Profile
+                </Link>
+              </div>
             ) : null}
             <LogoutButton />
           </div>

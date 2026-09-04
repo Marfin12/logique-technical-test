@@ -13,6 +13,9 @@ import { SessionCodec } from "./domain/session.js";
 import { AuthService } from "./services/auth-service.js";
 import { ProfileService } from "./services/profile-service.js";
 import { ProductService } from "./services/product-service.js";
+import { ApplicationRepository } from "./database/application-repository.js";
+import { IdempotencyRepository } from "./database/idempotency-repository.js";
+import { ApplicationService } from "./services/application-service.js";
 
 const config = loadConfig();
 let connection: DatabaseConnection | undefined;
@@ -33,6 +36,9 @@ async function start() {
     const users = new UserRepository(connection.db);
     const profiles = new ProfileRepository(connection.db);
     const products = new ProductRepository(connection.db);
+    const applications = new ApplicationRepository(connection.db);
+    const idempotency = new IdempotencyRepository(connection.db);
+    const productService = new ProductService(profiles, products);
     const sessionCodec = new SessionCodec(config.authSecret);
     const app = createApp({
       readiness: () =>
@@ -43,7 +49,17 @@ async function start() {
         sessionCodec,
       },
       phase3: {
-        productService: new ProductService(profiles, products),
+        productService,
+        sessionCodec,
+      },
+      phase4: {
+        applicationService: new ApplicationService(
+          applications,
+          idempotency,
+          productService,
+          () => new Date(),
+          connection.client,
+        ),
         sessionCodec,
       },
     });

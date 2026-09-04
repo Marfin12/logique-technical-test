@@ -81,6 +81,32 @@ export interface ApplicationListItemDto {
   reviewStartedAt?: string;
 }
 
+export type DraftTriggerDto =
+  | { kind: "INSURANCE_TYPE_SELECTED"; insuranceType: string }
+  | { kind: "SUPPLEMENTAL_FIELD_CHANGED"; fieldKey: string; value: unknown };
+
+export interface CreateDraftRequestDto {
+  productId: string;
+  productVersionId?: string;
+  trigger: DraftTriggerDto;
+}
+
+export interface DraftUpdateRequestDto {
+  version: number;
+  selectedInsuranceType?: string;
+  supplementalData?: Readonly<Record<string, unknown>>;
+}
+
+export interface ApplicationDto extends ApplicationListItemDto {
+  userId: string;
+  supplementalData: Readonly<Record<string, unknown>>;
+  createdAt: string;
+}
+
+export interface ApplicationResponseDto {
+  application: ApplicationDto;
+}
+
 export interface IdempotencyKeyContract {
   key: string;
   commandScope: string;

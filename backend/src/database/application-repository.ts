@@ -4,7 +4,7 @@ import type {
   ApplicationStatus,
   CursorPageDto,
 } from "@insurance/contracts";
-import type { Db, ObjectId } from "mongodb";
+import { ObjectId, type ClientSession, type Db } from "mongodb";
 
 import {
   decodeDateCursor,
@@ -46,6 +46,82 @@ function toListItem(document: ApplicationDocument): ApplicationListItemDto {
 
 export class ApplicationRepository {
   constructor(private readonly db: Db) {}
+
+  async createDraft(
+    input: {
+      id?: ObjectId;
+      userId: ObjectId;
+      productId: ObjectId;
+      productVersionId: ObjectId;
+      selectedInsuranceType?: string;
+      supplementalData: Record<string, unknown>;
+      now: Date;
+    },
+    session?: ClientSession,
+  ) {
+    const document: ApplicationDocument = {
+      _id: input.id ?? new ObjectId(),
+      userId: input.userId,
+      productId: input.productId,
+      productVersionId: input.productVersionId,
+      ...(input.selectedInsuranceType
+        ? { selectedInsuranceType: input.selectedInsuranceType }
+        : {}),
+      status: "DRAFT",
+      supplementalData: input.supplementalData,
+      version: 1,
+      isDeleted: false,
+      createdAt: input.now,
+      updatedAt: input.now,
+    };
+    await this.db
+      .collection<ApplicationDocument>("applications")
+      .insertOne(document, { session });
+    return document;
+  }
+
+  async findOwnedById(userId: ObjectId, id: ObjectId, session?: ClientSession) {
+    return this.db
+      .collection<ApplicationDocument>("applications")
+      .findOne({ _id: id, userId, isDeleted: false }, { session });
+  }
+
+  async updateDraft(input: {
+    userId: ObjectId;
+    id: ObjectId;
+    version: number;
+    set: Partial<
+      Pick<ApplicationDocument, "selectedInsuranceType" | "supplementalData">
+    >;
+    now: Date;
+  }) {
+    return this.db
+      .collection<ApplicationDocument>("applications")
+      .findOneAndUpdate(
+        {
+          _id: input.id,
+          userId: input.userId,
+          status: "DRAFT",
+          isDeleted: false,
+          version: input.version,
+        },
+        { $set: { ...input.set, updatedAt: input.now }, $inc: { version: 1 } },
+        { returnDocument: "after" },
+      );
+  }
+
+  async deleteDraft(userId: ObjectId, id: ObjectId, now: Date) {
+    return this.db
+      .collection<ApplicationDocument>("applications")
+      .findOneAndUpdate(
+        { _id: id, userId, status: "DRAFT", isDeleted: false },
+        {
+          $set: { isDeleted: true, deletedAt: now, updatedAt: now },
+          $inc: { version: 1 },
+        },
+        { returnDocument: "after" },
+      );
+  }
 
   async listForUser(input: {
     userId: ObjectId;
