@@ -18,6 +18,18 @@ export class ValidationError extends AppError {
   }
 }
 
+export class UnauthorizedError extends AppError {
+  constructor(message = "Authentication is required.") {
+    super(401, "UNAUTHORIZED", message);
+  }
+}
+
+export class DomainValidationError extends AppError {
+  constructor(message: string, fields?: FieldErrorDto[]) {
+    super(422, "VALIDATION_ERROR", message, fields);
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(message = "This action is not permitted.") {
     super(403, "FORBIDDEN", message);

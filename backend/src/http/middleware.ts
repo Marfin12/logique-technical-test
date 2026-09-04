@@ -1,10 +1,35 @@
 import { randomUUID } from "node:crypto";
 
-import type { ErrorRequestHandler, RequestHandler } from "express";
+import type {
+  ErrorRequestHandler,
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from "express";
 
 import type { ErrorDto } from "@insurance/contracts";
 
 import { AppError, ValidationError } from "../domain/errors.js";
+
+type AsyncRequestHandler = (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => Promise<void>;
+
+/** Explicitly turns async failures into Express error-middleware calls. */
+export function asyncHandler(handler: AsyncRequestHandler): RequestHandler {
+  return (request, response, next) => {
+    void (async () => {
+      try {
+        await handler(request, response, next);
+      } catch (error) {
+        next(error);
+      }
+    })();
+  };
+}
 
 export const requestIdMiddleware: RequestHandler = (
   request,

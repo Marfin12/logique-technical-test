@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Simple Insurance",
+  title: { default: "Simple Insurance", template: "%s | Simple Insurance" },
   description: "Simple insurance application",
 };
 

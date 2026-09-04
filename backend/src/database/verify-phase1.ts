@@ -299,27 +299,41 @@ async function verifyGrowthQueries(db: Db, userId: ObjectId) {
   assert.equal("profileSnapshot" in narrow, false);
 }
 
-const config = loadConfig();
-const connection = await connectDatabase(config);
-
-try {
-  await connection.db.dropDatabase();
-  const firstRun = await runMigrations(connection.db);
-  assert.deepEqual(firstRun, [
-    "000-foundation",
-    "001-contracts-and-persistence",
-  ]);
-  assert.deepEqual(await runMigrations(connection.db), []);
-  await verifySchemaAndIndexes(connection.db);
-  await seedTestProducts(connection.db);
-  const userId = await verifyTransactionsAndIdempotency(
-    connection.db,
-    connection.client,
-  );
-  await verifyValidators(connection.db, userId);
-  await verifyGrowthQueries(connection.db, userId);
-  console.log("Phase 1 database verification passed.");
-} finally {
-  await connection.db.dropDatabase();
-  await connection.client.close();
+async function main() {
+  const config = loadConfig();
+  let connection: Awaited<ReturnType<typeof connectDatabase>> | undefined;
+  try {
+    connection = await connectDatabase(config);
+    await connection.db.dropDatabase();
+    const firstRun = await runMigrations(connection.db);
+    assert.deepEqual(firstRun, [
+      "000-foundation",
+      "001-contracts-and-persistence",
+    ]);
+    assert.deepEqual(await runMigrations(connection.db), []);
+    await verifySchemaAndIndexes(connection.db);
+    await seedTestProducts(connection.db);
+    const userId = await verifyTransactionsAndIdempotency(
+      connection.db,
+      connection.client,
+    );
+    await verifyValidators(connection.db, userId);
+    await verifyGrowthQueries(connection.db, userId);
+    console.log("Phase 1 database verification passed.");
+  } catch (error) {
+    console.error("Phase 1 database verification failed.", error);
+    process.exitCode = 1;
+  } finally {
+    if (connection) {
+      try {
+        await connection.db.dropDatabase();
+        await connection.client.close();
+      } catch (error) {
+        console.error("Verification database cleanup failed.", error);
+        process.exitCode = 1;
+      }
+    }
+  }
 }
+
+void main();

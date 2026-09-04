@@ -90,3 +90,44 @@ export interface HealthResponse {
   status: "ok";
   service: "api";
 }
+
+export interface LoginRequestDto {
+  email: string;
+  password: string;
+}
+
+export interface AccountDto {
+  id: string;
+  displayName: string;
+  role: Role;
+  profileComplete: boolean;
+}
+
+export interface LoginResponseDto {
+  account: AccountDto;
+  nextPath: "/profile/setup" | "/products" | "/admin/applications";
+}
+
+export interface CurrentAccountResponseDto {
+  account: AccountDto;
+}
+
+export interface MasterProfileDto {
+  age: number;
+  sumAssured: MoneyDto;
+  paymentFrequency: PaymentFrequency;
+  paymentMethod: PaymentMethod;
+  version: number;
+  updatedAt: string;
+}
+
+export interface MasterProfileResponseDto {
+  profile: MasterProfileDto | null;
+}
+
+export interface SaveMasterProfileRequestDto {
+  age: number;
+  sumAssured: MoneyDto;
+  paymentFrequency: PaymentFrequency;
+  paymentMethod: PaymentMethod;
+}

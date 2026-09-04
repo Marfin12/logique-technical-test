@@ -3,10 +3,16 @@ import helmet from "helmet";
 
 import type { ErrorDto, HealthResponse } from "@insurance/contracts";
 
-import { errorHandler, requestIdMiddleware } from "./http/middleware.js";
+import {
+  asyncHandler,
+  errorHandler,
+  requestIdMiddleware,
+} from "./http/middleware.js";
+import { phase2Router, type Phase2Dependencies } from "./http/phase2-routes.js";
 
 export interface AppDependencies {
   readiness(): Promise<void>;
+  phase2?: Phase2Dependencies;
 }
 
 export function createApp(dependencies: AppDependencies) {
@@ -16,15 +22,22 @@ export function createApp(dependencies: AppDependencies) {
   app.use(requestIdMiddleware);
   app.use(express.json({ limit: "100kb" }));
 
+  if (dependencies.phase2) {
+    app.use("/api/v1", phase2Router(dependencies.phase2));
+  }
+
   app.get("/health", (_request, response) => {
     const body: HealthResponse = { status: "ok", service: "api" };
     response.json(body);
   });
 
-  app.get("/ready", async (_request, response) => {
-    await dependencies.readiness();
-    response.json({ status: "ready" });
-  });
+  app.get(
+    "/ready",
+    asyncHandler(async (_request, response) => {
+      await dependencies.readiness();
+      response.json({ status: "ready" });
+    }),
+  );
 
   app.use((_request, response) => {
     const body: ErrorDto = {

@@ -10,7 +10,7 @@ Phase 0 provides a testable technical foundation:
 - Docker Compose with only the web port published;
 - formatting, linting, strict type-checking, unit/integration tests, builds, and CI image scanning.
 
-Business features, authentication, profiles, products, and applications begin in later phases.
+Phase 2 adds common user/admin authentication, role-aware routing, and persistent user master profiles. Product matching and applications remain in later phases.
 
 Repository layout:
 
@@ -48,6 +48,8 @@ npm run dev
 
 Next.js runs on `http://localhost:3000`; Express runs internally on `http://localhost:4000`.
 
+The Express process retries an unavailable MongoDB connection every two seconds instead of terminating on the first failed attempt. Database failures after startup are passed through the centralized HTTP error boundary and return a structured `500` response with a request ID; repository and transaction errors are still rethrown so they cannot be mistaken for successful writes.
+
 ## Verify
 
 ```sh
@@ -80,6 +82,34 @@ docker compose --profile tools run --rm seed
 Every seeded product is visibly marked `[TEST ONLY]` and must not be treated as approved insurance or rating policy.
 
 Phase 1 provides canonical shared enums and DTOs, MongoDB JSON Schema validators and indexes, transactional repository primitives, decimal-safe money serialization, idempotency fingerprints and records, and keyset-paginated application queries. It does not expose user-facing product or application endpoints yet; those are introduced by later phases.
+
+## Test Phase 2 authentication and profile
+
+Set `AUTH_SECRET` in `.env` to a private random value containing at least 32 characters. If it is omitted, the API creates an ephemeral secret and all sessions end whenever the API restarts.
+
+Start the application and load the deterministic test-only accounts:
+
+```sh
+docker compose up --build -d
+docker compose --profile tools run --build --rm seed
+```
+
+Open `http://localhost/login` and test these isolated fixtures:
+
+| Flow          | Email                        | Password           | Expected destination               |
+| ------------- | ---------------------------- | ------------------ | ---------------------------------- |
+| New user      | `new.user@example.test`      | `NewUser123!`      | Master profile setup               |
+| Profiled user | `profiled.user@example.test` | `ProfiledUser123!` | Product catalog placeholder        |
+| Administrator | `admin@example.test`         | `AdminUser123!`    | Admin application-list placeholder |
+
+The new-user flow accepts age, positive decimal sum assured in IDR, a canonical payment frequency, and a payment method. After saving, sign out and sign back in to verify that the persisted profile routes directly to `/products`. These accounts and credentials are test data only and must never be enabled as real deployment accounts.
+
+The automated Phase 2 checks are included in the standard suite:
+
+```sh
+npm test
+npm run test:integration
+```
 
 ## Documentation
 

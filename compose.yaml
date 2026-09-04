@@ -69,6 +69,7 @@ services:
       MONGODB_URI: mongodb://mongo:27017/insurance?replicaSet=rs0
       MONGODB_DB_NAME: insurance
       API_PORT: 4000
+      AUTH_SECRET: ${AUTH_SECRET:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
