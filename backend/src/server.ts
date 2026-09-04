@@ -7,10 +7,12 @@ import {
   type DatabaseConnection,
 } from "./database/client.js";
 import { ProfileRepository } from "./database/profile-repository.js";
+import { ProductRepository } from "./database/product-repository.js";
 import { UserRepository } from "./database/user-repository.js";
 import { SessionCodec } from "./domain/session.js";
 import { AuthService } from "./services/auth-service.js";
 import { ProfileService } from "./services/profile-service.js";
+import { ProductService } from "./services/product-service.js";
 
 const config = loadConfig();
 let connection: DatabaseConnection | undefined;
@@ -30,13 +32,19 @@ async function start() {
 
     const users = new UserRepository(connection.db);
     const profiles = new ProfileRepository(connection.db);
+    const products = new ProductRepository(connection.db);
+    const sessionCodec = new SessionCodec(config.authSecret);
     const app = createApp({
       readiness: () =>
         connection!.db.command({ ping: 1 }).then(() => undefined),
       phase2: {
         authService: new AuthService(users, profiles),
         profileService: new ProfileService(profiles),
-        sessionCodec: new SessionCodec(config.authSecret),
+        sessionCodec,
+      },
+      phase3: {
+        productService: new ProductService(profiles, products),
+        sessionCodec,
       },
     });
 

@@ -10,6 +10,7 @@ describe("MongoDB migrations", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain("000-foundation");
     expect(ids).toContain("001-contracts-and-persistence");
+    expect(ids).toContain("002-product-configuration-contracts");
   });
 
   it("defines every Phase 1 collection and required index", () => {

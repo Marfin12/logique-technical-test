@@ -9,10 +9,12 @@ import {
   requestIdMiddleware,
 } from "./http/middleware.js";
 import { phase2Router, type Phase2Dependencies } from "./http/phase2-routes.js";
+import { phase3Router, type Phase3Dependencies } from "./http/phase3-routes.js";
 
 export interface AppDependencies {
   readiness(): Promise<void>;
   phase2?: Phase2Dependencies;
+  phase3?: Phase3Dependencies;
 }
 
 export function createApp(dependencies: AppDependencies) {
@@ -24,6 +26,9 @@ export function createApp(dependencies: AppDependencies) {
 
   if (dependencies.phase2) {
     app.use("/api/v1", phase2Router(dependencies.phase2));
+  }
+  if (dependencies.phase3) {
+    app.use("/api/v1", phase3Router(dependencies.phase3));
   }
 
   app.get("/health", (_request, response) => {

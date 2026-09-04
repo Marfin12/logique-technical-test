@@ -8,7 +8,10 @@ import type {
 
 import type { SessionCodec } from "../domain/session.js";
 import type { AuthService } from "../services/auth-service.js";
-import { parseLoginInput } from "../services/auth-service.js";
+import {
+  parseLoginInput,
+  parseRegisterInput,
+} from "../services/auth-service.js";
 import type { ProfileService } from "../services/profile-service.js";
 import {
   authentication,
@@ -29,11 +32,32 @@ export interface Phase2Dependencies {
 export function phase2Router(dependencies: Phase2Dependencies) {
   const router = Router();
   const requireAuthentication = authentication(dependencies.sessionCodec);
+  const authRateLimit = loginRateLimit({
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  router.post(
+    "/auth/register",
+    sameOrigin,
+    authRateLimit,
+    asyncHandler(async (request, response) => {
+      const result = await dependencies.authService.register(
+        parseRegisterInput(request.body),
+      );
+      const token = dependencies.sessionCodec.issue({
+        id: result.account.id,
+        role: result.account.role,
+      });
+      response.setHeader("set-cookie", sessionCookie(token));
+      response.status(201).json(result satisfies LoginResponseDto);
+    }),
+  );
 
   router.post(
     "/auth/login",
     sameOrigin,
-    loginRateLimit({ limit: 10, windowMs: 15 * 60 * 1000 }),
+    authRateLimit,
     asyncHandler(async (request, response) => {
       const result = await dependencies.authService.login(
         parseLoginInput(request.body),

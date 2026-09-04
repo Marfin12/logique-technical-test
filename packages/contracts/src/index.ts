@@ -46,6 +46,7 @@ export interface ErrorDto {
     message: string;
     requestId?: string;
     fields?: FieldErrorDto[];
+    reasonCodes?: ProductEligibilityReasonCode[];
   };
 }
 
@@ -96,6 +97,12 @@ export interface LoginRequestDto {
   password: string;
 }
 
+export interface RegisterRequestDto {
+  displayName: string;
+  email: string;
+  password: string;
+}
+
 export interface AccountDto {
   id: string;
   displayName: string;
@@ -130,4 +137,69 @@ export interface SaveMasterProfileRequestDto {
   sumAssured: MoneyDto;
   paymentFrequency: PaymentFrequency;
   paymentMethod: PaymentMethod;
+}
+
+export const PRODUCT_ELIGIBILITY_REASON_CODES = [
+  "AGE_BELOW_MINIMUM",
+  "AGE_ABOVE_MAXIMUM",
+  "SUM_ASSURED_BELOW_MINIMUM",
+  "SUM_ASSURED_ABOVE_MAXIMUM",
+  "CURRENCY_UNSUPPORTED",
+  "PAYMENT_FREQUENCY_UNSUPPORTED",
+  "PAYMENT_METHOD_UNSUPPORTED",
+] as const;
+export type ProductEligibilityReasonCode =
+  (typeof PRODUCT_ELIGIBILITY_REASON_CODES)[number];
+
+export interface PremiumQuoteDto extends MoneyDto {
+  paymentFrequency: PaymentFrequency;
+}
+
+export type SupplementalFieldType =
+  | "text"
+  | "multiline"
+  | "integer"
+  | "decimal"
+  | "date"
+  | "boolean"
+  | "single-select"
+  | "multi-select";
+
+export interface SupplementalFieldDto {
+  key: string;
+  label: string;
+  type: SupplementalFieldType;
+  required: boolean;
+  options?: readonly string[];
+}
+
+export interface SupplementalSchemaDto {
+  version: number;
+  fields: readonly SupplementalFieldDto[];
+}
+
+export interface ProductCatalogItemDto {
+  id: string;
+  versionId: string;
+  version: number;
+  name: string;
+  insuranceTypes: readonly string[];
+  description: string;
+  premium: PremiumQuoteDto;
+  testOnly: boolean;
+}
+
+export interface ProductDetailDto extends ProductCatalogItemDto {
+  coverage: Readonly<Record<string, string>>;
+  benefits: readonly string[];
+  limitations: readonly string[];
+  supplementalSchema: SupplementalSchemaDto;
+}
+
+export interface ProductCatalogResponseDto {
+  items: readonly ProductCatalogItemDto[];
+}
+
+export interface ProductDetailResponseDto {
+  product: ProductDetailDto;
 }

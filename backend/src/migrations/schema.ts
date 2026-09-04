@@ -103,6 +103,7 @@ export const COLLECTION_SPECS: readonly CollectionSpec[] = [
           "ratingConfig",
           "supplementalSchema",
           "effectiveFrom",
+          "effectiveTo",
           "testOnly",
         ],
         properties: {
@@ -115,11 +116,112 @@ export const COLLECTION_SPECS: readonly CollectionSpec[] = [
           },
           description: { bsonType: "string" },
           coverage: { bsonType: "object" },
-          benefits: { bsonType: "array" },
-          limitations: { bsonType: "array" },
-          eligibilityConfig: { bsonType: "object" },
-          ratingConfig: { bsonType: "object" },
-          supplementalSchema: { bsonType: "object" },
+          benefits: { bsonType: "array", items: { bsonType: "string" } },
+          limitations: { bsonType: "array", items: { bsonType: "string" } },
+          eligibilityConfig: {
+            bsonType: "object",
+            required: [
+              "minimumAge",
+              "maximumAge",
+              "minimumSumAssured",
+              "maximumSumAssured",
+              "currency",
+              "paymentFrequencies",
+              "paymentMethods",
+            ],
+            properties: {
+              minimumAge: { bsonType: "int", minimum: 1 },
+              maximumAge: { bsonType: "int", minimum: 1 },
+              minimumSumAssured: { bsonType: "decimal" },
+              maximumSumAssured: { bsonType: "decimal" },
+              currency: { bsonType: "string", pattern: "^[A-Z]{3}$" },
+              paymentFrequencies: {
+                bsonType: "array",
+                minItems: 1,
+                uniqueItems: true,
+                items: { enum: [...PAYMENT_FREQUENCIES] },
+              },
+              paymentMethods: {
+                bsonType: "array",
+                minItems: 1,
+                uniqueItems: true,
+                items: { enum: [...PAYMENT_METHODS] },
+              },
+            },
+          },
+          ratingConfig: {
+            bsonType: "object",
+            required: [
+              "version",
+              "ratePerThousand",
+              "frequencyFactors",
+              "paymentMethodFactors",
+              "roundingScale",
+            ],
+            properties: {
+              version: { bsonType: "int", minimum: 1 },
+              ratePerThousand: { bsonType: "decimal" },
+              frequencyFactors: {
+                bsonType: "object",
+                required: [...PAYMENT_FREQUENCIES],
+                properties: Object.fromEntries(
+                  PAYMENT_FREQUENCIES.map((value) => [
+                    value,
+                    { bsonType: "decimal" },
+                  ]),
+                ),
+              },
+              paymentMethodFactors: {
+                bsonType: "object",
+                required: [...PAYMENT_METHODS],
+                properties: Object.fromEntries(
+                  PAYMENT_METHODS.map((value) => [
+                    value,
+                    { bsonType: "decimal" },
+                  ]),
+                ),
+              },
+              roundingScale: { bsonType: "int", minimum: 0, maximum: 6 },
+            },
+          },
+          supplementalSchema: {
+            bsonType: "object",
+            required: ["version", "fields"],
+            properties: {
+              version: { bsonType: "int", minimum: 1 },
+              fields: {
+                bsonType: "array",
+                items: {
+                  bsonType: "object",
+                  required: ["key", "label", "type", "required"],
+                  properties: {
+                    key: {
+                      bsonType: "string",
+                      pattern: "^[A-Za-z][A-Za-z0-9_]{0,63}$",
+                    },
+                    label: { bsonType: "string", minLength: 1 },
+                    type: {
+                      enum: [
+                        "text",
+                        "multiline",
+                        "integer",
+                        "decimal",
+                        "date",
+                        "boolean",
+                        "single-select",
+                        "multi-select",
+                      ],
+                    },
+                    required: { bsonType: "bool" },
+                    options: {
+                      bsonType: "array",
+                      items: { bsonType: "string" },
+                    },
+                  },
+                },
+              },
+            },
+          },
           effectiveFrom: { bsonType: "date" },
           effectiveTo: { bsonType: ["date", "null"] },
           testOnly: { bsonType: "bool" },

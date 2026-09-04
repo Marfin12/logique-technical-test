@@ -657,7 +657,7 @@ A task is done only when:
 - [x] Phase 0 complete — project foundation
 - [x] Phase 1 complete — contracts and persistence
 - [x] Phase 2 complete — authentication and profile
-- [ ] Phase 3 complete — product matching and premium
+- [x] Phase 3 complete — product matching and premium
 - [ ] Phase 4 complete — product application and draft
 - [ ] Phase 5 complete — submission and user progress
 - [ ] Phase 6 complete — admin lifecycle

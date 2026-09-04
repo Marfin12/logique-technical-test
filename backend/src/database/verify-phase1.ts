@@ -18,12 +18,20 @@ import {
 } from "./application-queries.js";
 import { ApplicationRepository } from "./application-repository.js";
 import { connectDatabase } from "./client.js";
-import { seedTestProducts, TEST_PRODUCT_IDS } from "./fixtures.js";
+import {
+  seedTestAccounts,
+  seedTestProducts,
+  TEST_ACCOUNT_IDS,
+  TEST_PRODUCT_IDS,
+} from "./fixtures.js";
 import { IdempotencyRepository } from "./idempotency-repository.js";
+import { ProductRepository } from "./product-repository.js";
+import { ProfileRepository } from "./profile-repository.js";
 import { runMigrations } from "../migrations/migrations.js";
 import { COLLECTION_SPECS, INDEX_SPECS } from "../migrations/schema.js";
 import { runInTransaction } from "./transactions.js";
 import { loadConfig } from "../config.js";
+import { ProductService } from "../services/product-service.js";
 
 function applicationFixture(input: {
   userId: ObjectId;
@@ -151,6 +159,67 @@ async function verifyValidators(db: Db, userId: ObjectId) {
   });
   delete inconsistent.rejectionReason;
   await assert.rejects(db.collection("applications").insertOne(inconsistent));
+  await assert.rejects(
+    db.collection("productVersions").insertOne({
+      _id: new ObjectId(),
+      productId: TEST_PRODUCT_IDS.life,
+      version: 99,
+      insuranceTypes: ["INVALID_FIXTURE"],
+      description: "Invalid rating configuration fixture",
+      coverage: {},
+      benefits: [],
+      limitations: [],
+      eligibilityConfig: { minimumAge: 18, maximumAge: 65 },
+      ratingConfig: { version: 1 },
+      supplementalSchema: { version: 1, fields: [] },
+      effectiveFrom: now,
+      effectiveTo: null,
+      testOnly: true,
+    }),
+  );
+}
+
+async function verifyProductCatalog(db: Db) {
+  await seedTestAccounts(db);
+  const products = new ProductRepository(db);
+  const service = new ProductService(
+    new ProfileRepository(db),
+    products,
+    () => new Date("2026-09-04T00:00:00.000Z"),
+  );
+  const principal = {
+    id: TEST_ACCOUNT_IDS.profiledUser.toHexString(),
+    role: "USER" as const,
+  };
+  const catalog = await service.catalog(principal);
+  assert.equal(catalog.items.length, 2);
+  const life = catalog.items.find(
+    ({ id }) => id === TEST_PRODUCT_IDS.life.toHexString(),
+  );
+  assert(life);
+  assert.equal(life.premium.amount, "108000.00");
+  const detail = await service.getDetail(principal, life.id);
+  assert.deepEqual(detail.product.premium, life.premium);
+
+  await db.collection("masterProfiles").updateOne(
+    { userId: TEST_ACCOUNT_IDS.profiledUser },
+    {
+      $set: {
+        paymentFrequency: "QUARTERLY",
+        paymentMethod: "ONE_TIME",
+      },
+    },
+  );
+  const restricted = await service.catalog(principal);
+  assert.deepEqual(
+    restricted.items.map(({ id }) => id),
+    [TEST_PRODUCT_IDS.life.toHexString()],
+  );
+  await assert.rejects(
+    service.getDetail(principal, TEST_PRODUCT_IDS.health.toHexString()),
+    (error: unknown) =>
+      error instanceof Error && error.message.includes("not compatible"),
+  );
 }
 
 async function verifyTransactionsAndIdempotency(
@@ -309,6 +378,7 @@ async function main() {
     assert.deepEqual(firstRun, [
       "000-foundation",
       "001-contracts-and-persistence",
+      "002-product-configuration-contracts",
     ]);
     assert.deepEqual(await runMigrations(connection.db), []);
     await verifySchemaAndIndexes(connection.db);
@@ -319,7 +389,8 @@ async function main() {
     );
     await verifyValidators(connection.db, userId);
     await verifyGrowthQueries(connection.db, userId);
-    console.log("Phase 1 database verification passed.");
+    await verifyProductCatalog(connection.db);
+    console.log("Phase 1-3 database verification passed.");
   } catch (error) {
     console.error("Phase 1 database verification failed.", error);
     process.exitCode = 1;

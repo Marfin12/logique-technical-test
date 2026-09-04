@@ -71,6 +71,23 @@ export const MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    id: "002-product-configuration-contracts",
+    async up(db) {
+      const productVersions = COLLECTION_SPECS.find(
+        ({ name }) => name === "productVersions",
+      );
+      if (!productVersions) {
+        throw new Error("Product-version schema is not configured.");
+      }
+      await db.command({
+        collMod: "productVersions",
+        validator: productVersions.validator,
+        validationLevel: "strict",
+        validationAction: "error",
+      });
+    },
+  },
 ];
 
 async function ensureMigrationCollection(db: Db): Promise<void> {

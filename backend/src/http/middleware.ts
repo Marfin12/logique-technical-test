@@ -91,6 +91,7 @@ export const errorHandler: ErrorRequestHandler = (
       message: appError?.message ?? "An unexpected error occurred.",
       requestId: response.locals.requestId as string | undefined,
       ...(appError?.fields ? { fields: appError.fields } : {}),
+      ...(appError?.reasonCodes ? { reasonCodes: appError.reasonCodes } : {}),
     },
   };
   response.status(appError?.status ?? 500).json(body);

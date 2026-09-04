@@ -15,7 +15,7 @@ import {
 
 const apiInternalUrl = process.env.API_INTERNAL_URL ?? "http://localhost:4000";
 
-async function authenticatedFetch(path: string): Promise<Response> {
+export async function authenticatedFetch(path: string): Promise<Response> {
   const cookieHeader = (await cookies()).toString();
   return fetch(`${apiInternalUrl}${path}`, {
     headers: { cookie: cookieHeader },

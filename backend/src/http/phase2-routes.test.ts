@@ -6,6 +6,7 @@ import type { Role } from "@insurance/contracts";
 
 import { createApp } from "../app.js";
 import { hashPassword } from "../domain/credentials.js";
+import { ConflictError } from "../domain/errors.js";
 import { SessionCodec } from "../domain/session.js";
 import type {
   MasterProfileDocument,
@@ -85,6 +86,25 @@ function testContext() {
         Promise.resolve(
           users.find((item) => item._id.toHexString() === id) ?? null,
         ),
+      create: (input) => {
+        if (
+          users.some((item) => item.normalizedEmail === input.normalizedEmail)
+        ) {
+          return Promise.reject(
+            new ConflictError(
+              "An account could not be created with these details.",
+            ),
+          );
+        }
+        const created: UserDocument = {
+          _id: new ObjectId(),
+          ...input,
+          createdAt: NOW,
+          updatedAt: NOW,
+        };
+        users.push(created);
+        return Promise.resolve(created);
+      },
     },
     profiles,
   );
@@ -106,6 +126,37 @@ function testContext() {
 }
 
 describe("Phase 2 authentication and profile API", () => {
+  it("registers only a user account and starts profile setup", async () => {
+    const { app } = testContext();
+    const invalid = await request(app).post("/api/v1/auth/register").send({
+      displayName: "A",
+      email: "invalid",
+      password: "weak",
+    });
+    expect(invalid.status).toBe(422);
+    expect(invalid.body.error.fields).toHaveLength(3);
+
+    const agent = request.agent(app);
+    const created = await agent.post("/api/v1/auth/register").send({
+      displayName: "New Customer",
+      email: "NEW.CUSTOMER@example.test",
+      password: "StrongPassword123!",
+    });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      account: { role: "USER", profileComplete: false },
+      nextPath: "/profile/setup",
+    });
+    expect((await agent.get("/api/v1/me")).body.account.role).toBe("USER");
+
+    const duplicate = await request(app).post("/api/v1/auth/register").send({
+      displayName: "Another Customer",
+      email: "new.customer@example.test",
+      password: "StrongPassword123!",
+    });
+    expect(duplicate.status).toBe(409);
+  });
+
   it("returns the correct destination for each authenticated account", async () => {
     const { app } = testContext();
     for (const [email, nextPath] of [

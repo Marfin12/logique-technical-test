@@ -10,7 +10,7 @@ Phase 0 provides a testable technical foundation:
 - Docker Compose with only the web port published;
 - formatting, linting, strict type-checking, unit/integration tests, builds, and CI image scanning.
 
-Phase 2 adds common user/admin authentication, role-aware routing, and persistent user master profiles. Product matching and applications remain in later phases.
+Phase 2 adds user registration, common user/admin authentication, role-aware routing, and persistent user master profiles. Phase 3 adds profile-based product eligibility, server-calculated premiums, and product details. Applications remain in later phases.
 
 Repository layout:
 
@@ -99,10 +99,12 @@ Open `http://localhost/login` and test these isolated fixtures:
 | Flow          | Email                        | Password           | Expected destination               |
 | ------------- | ---------------------------- | ------------------ | ---------------------------------- |
 | New user      | `new.user@example.test`      | `NewUser123!`      | Master profile setup               |
-| Profiled user | `profiled.user@example.test` | `ProfiledUser123!` | Product catalog placeholder        |
+| Profiled user | `profiled.user@example.test` | `ProfiledUser123!` | Eligible product catalog           |
 | Administrator | `admin@example.test`         | `AdminUser123!`    | Admin application-list placeholder |
 
 The new-user flow accepts age, positive decimal sum assured in IDR, a canonical payment frequency, and a payment method. After saving, sign out and sign back in to verify that the persisted profile routes directly to `/products`. These accounts and credentials are test data only and must never be enabled as real deployment accounts.
+
+The same login page provides **Create an account** for new customers. Self-registration always creates a `USER`; it cannot create an administrator. A registered user is signed in and routed directly to master-profile setup.
 
 The automated Phase 2 checks are included in the standard suite:
 
@@ -110,6 +112,14 @@ The automated Phase 2 checks are included in the standard suite:
 npm test
 npm run test:integration
 ```
+
+## Test Phase 3 products and premiums
+
+Sign in as `profiled.user@example.test`. Its default monthly/recurring profile matches both test products. The catalog displays exact premium strings calculated by the backend, and each card links to a detail page with insurance types, coverage, benefits, limitations, and supplemental-field metadata.
+
+Change that profile to `Quarterly (3 Months)` and `One-time`. The health fixture becomes ineligible and disappears, while the life fixture remains visible with a recalculated premium. Directly opening an ineligible or inactive product returns a safe reason code instead of exposing hidden product configuration.
+
+All eligibility limits, rates, frequency factors, method factors, and rounding settings in the repository are explicitly `[TEST ONLY]` fixtures. They are not approved insurance business values.
 
 ## Documentation
 

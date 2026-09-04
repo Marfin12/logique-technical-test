@@ -30,6 +30,69 @@ export interface MasterProfileDocument {
   updatedAt: Date;
 }
 
+export interface ProductDocument {
+  _id: ObjectId;
+  name: string;
+  active: boolean;
+  testOnly: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface EligibilityConfigDocument {
+  minimumAge: number;
+  maximumAge: number;
+  minimumSumAssured: Decimal128;
+  maximumSumAssured: Decimal128;
+  currency: string;
+  paymentFrequencies: PaymentFrequency[];
+  paymentMethods: PaymentMethod[];
+}
+
+export interface RatingConfigDocument {
+  version: number;
+  ratePerThousand: Decimal128;
+  frequencyFactors: Record<PaymentFrequency, Decimal128>;
+  paymentMethodFactors: Record<PaymentMethod, Decimal128>;
+  roundingScale: number;
+}
+
+export interface SupplementalFieldDocument {
+  key: string;
+  label: string;
+  type:
+    | "text"
+    | "multiline"
+    | "integer"
+    | "decimal"
+    | "date"
+    | "boolean"
+    | "single-select"
+    | "multi-select";
+  required: boolean;
+  options?: string[];
+}
+
+export interface ProductVersionDocument {
+  _id: ObjectId;
+  productId: ObjectId;
+  version: number;
+  insuranceTypes: string[];
+  description: string;
+  coverage: Record<string, string>;
+  benefits: string[];
+  limitations: string[];
+  eligibilityConfig: EligibilityConfigDocument;
+  ratingConfig: RatingConfigDocument;
+  supplementalSchema: {
+    version: number;
+    fields: SupplementalFieldDocument[];
+  };
+  effectiveFrom: Date;
+  effectiveTo: Date | null;
+  testOnly: boolean;
+}
+
 export interface ApplicationDocument {
   _id: ObjectId;
   userId: ObjectId;

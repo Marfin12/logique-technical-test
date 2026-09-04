@@ -137,12 +137,43 @@ export async function seedTestProducts(db: Db): Promise<void> {
       productId: TEST_PRODUCT_IDS.life,
       version: 1,
       insuranceTypes: ["TERM_LIFE"],
-      description: "Test fixture for exercising Phase 1 persistence only.",
-      coverage: { currency: "IDR" },
+      description:
+        "Test term-life fixture with configurable eligibility and rating.",
+      coverage: {
+        currency: "IDR",
+        summary: "Test coverage up to the selected sum assured",
+      },
       benefits: ["TEST DATA - not an approved insurance benefit"],
       limitations: ["TEST DATA - do not use for production decisions"],
-      eligibilityConfig: { minimumAge: 18, maximumAge: 65 },
-      ratingConfig: { baseAmount: Decimal128.fromString("100.00"), version: 1 },
+      eligibilityConfig: {
+        minimumAge: 18,
+        maximumAge: 65,
+        minimumSumAssured: Decimal128.fromString("10000000.00"),
+        maximumSumAssured: Decimal128.fromString("1000000000.00"),
+        currency: "IDR",
+        paymentFrequencies: [
+          "MONTHLY",
+          "QUARTERLY",
+          "SEMI_ANNUALLY",
+          "ANNUALLY",
+        ],
+        paymentMethods: ["RECURRING", "ONE_TIME"],
+      },
+      ratingConfig: {
+        ratePerThousand: Decimal128.fromString("2.40"),
+        frequencyFactors: {
+          MONTHLY: Decimal128.fromString("0.09"),
+          QUARTERLY: Decimal128.fromString("0.26"),
+          SEMI_ANNUALLY: Decimal128.fromString("0.52"),
+          ANNUALLY: Decimal128.fromString("0.95"),
+        },
+        paymentMethodFactors: {
+          RECURRING: Decimal128.fromString("1.00"),
+          ONE_TIME: Decimal128.fromString("0.98"),
+        },
+        roundingScale: 2,
+        version: 1,
+      },
       supplementalSchema: { version: 1, fields: [] },
     },
     {
@@ -150,13 +181,49 @@ export async function seedTestProducts(db: Db): Promise<void> {
       productId: TEST_PRODUCT_IDS.health,
       version: 1,
       insuranceTypes: ["INDIVIDUAL_HEALTH"],
-      description: "Test fixture for exercising Phase 1 persistence only.",
-      coverage: { currency: "IDR" },
+      description:
+        "Test individual-health fixture with restricted payment choices.",
+      coverage: {
+        currency: "IDR",
+        summary: "Test inpatient and outpatient coverage",
+      },
       benefits: ["TEST DATA - not an approved insurance benefit"],
       limitations: ["TEST DATA - do not use for production decisions"],
-      eligibilityConfig: { minimumAge: 18, maximumAge: 60 },
-      ratingConfig: { baseAmount: Decimal128.fromString("150.00"), version: 1 },
-      supplementalSchema: { version: 1, fields: [] },
+      eligibilityConfig: {
+        minimumAge: 18,
+        maximumAge: 60,
+        minimumSumAssured: Decimal128.fromString("50000000.00"),
+        maximumSumAssured: Decimal128.fromString("500000000.00"),
+        currency: "IDR",
+        paymentFrequencies: ["MONTHLY", "ANNUALLY"],
+        paymentMethods: ["RECURRING"],
+      },
+      ratingConfig: {
+        ratePerThousand: Decimal128.fromString("3.60"),
+        frequencyFactors: {
+          MONTHLY: Decimal128.fromString("0.09"),
+          QUARTERLY: Decimal128.fromString("0.27"),
+          SEMI_ANNUALLY: Decimal128.fromString("0.53"),
+          ANNUALLY: Decimal128.fromString("0.96"),
+        },
+        paymentMethodFactors: {
+          RECURRING: Decimal128.fromString("1.00"),
+          ONE_TIME: Decimal128.fromString("1.03"),
+        },
+        roundingScale: 2,
+        version: 1,
+      },
+      supplementalSchema: {
+        version: 1,
+        fields: [
+          {
+            key: "preExistingConditions",
+            label: "Pre-existing conditions",
+            type: "boolean",
+            required: true,
+          },
+        ],
+      },
     },
   ];
   for (const version of versions) {
