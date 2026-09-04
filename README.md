@@ -130,4 +130,8 @@ All eligibility limits, rates, frequency factors, method factors, and rounding s
 
 Open a product detail page while signed in. Viewing and scrolling remain side-effect free; choosing an insurance type or changing a product-specific field creates one `DRAFT` application. Subsequent edits use optimistic versioning and display `Saving`, `Saved`, or a retryable failure. Drafts can be resumed from `/applications` and `/applications/:id`.
 
-The API uses `POST /api/v1/me/applications/drafts` with an `Idempotency-Key`, `PATCH /api/v1/me/applications/:id/draft` with the current `version`, and owner-only `GET`/`DELETE` endpoints. Dynamic fields are validated against the active product version allow-list; unknown keys and wrong types are rejected. Submission and review actions are intentionally deferred to Phase 5.
+The draft API uses `POST /api/v1/me/applications/drafts` with an `Idempotency-Key`, `PATCH /api/v1/me/applications/:id/draft` with the current `version`, and owner-only `GET`/`DELETE` endpoints. Dynamic fields are validated against the active product version allow-list; unknown keys and wrong types are rejected.
+
+## Phase 6: admin review
+
+Sign in with the seeded admin account and open `/admin/applications`. Drafts are excluded. A submitted row exposes **Start Review**; the transition completes before navigation to the read-only detail page. Under-review detail pages expose **Approve** and **Reject**, with a required rejection reason. Direct detail navigation never changes status, and stale or terminal transitions return `409 Conflict`.

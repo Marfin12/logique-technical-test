@@ -46,6 +46,12 @@ export class ConflictError extends AppError {
   }
 }
 
+export class NotFoundError extends AppError {
+  constructor(message = "Resource not found.") {
+    super(404, "NOT_FOUND", message);
+  }
+}
+
 export class ProfileIncompleteError extends AppError {
   constructor() {
     super(

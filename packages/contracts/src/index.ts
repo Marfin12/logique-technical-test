@@ -101,10 +101,49 @@ export interface ApplicationDto extends ApplicationListItemDto {
   userId: string;
   supplementalData: Readonly<Record<string, unknown>>;
   createdAt: string;
+  profileSnapshot?: Readonly<Record<string, unknown>>;
+  productSnapshot?: Readonly<Record<string, unknown>>;
+  premiumSnapshot?: Readonly<Record<string, unknown>>;
+  reviewerId?: string;
+  rejectionReason?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
 }
 
 export interface ApplicationResponseDto {
   application: ApplicationDto;
+}
+
+export interface AdminApplicationListItemDto extends ApplicationListItemDto {
+  applicantName: string;
+  applicantUsername: string;
+  productName?: string;
+  paymentFrequency?: PaymentFrequency;
+}
+
+export interface ApplicationStatusEventDto {
+  id: string;
+  fromStatus: ApplicationStatus | null;
+  toStatus: ApplicationStatus;
+  actorId: string;
+  actorRole: Role;
+  reason?: string;
+  createdAt: string;
+}
+
+export interface AdminApplicationDetailDto {
+  application: ApplicationDto;
+  applicant: { id: string; displayName: string; username: string };
+  statusHistory: ApplicationStatusEventDto[];
+}
+
+export interface AdminProfileResponseDto {
+  applicant: { id: string; displayName: string; username: string };
+  profile: MasterProfileDto | null;
+}
+
+export interface RejectApplicationRequestDto {
+  reason: string;
 }
 
 export interface IdempotencyKeyContract {

@@ -11,12 +11,14 @@ import {
 import { phase2Router, type Phase2Dependencies } from "./http/phase2-routes.js";
 import { phase3Router, type Phase3Dependencies } from "./http/phase3-routes.js";
 import { phase4Router, type Phase4Dependencies } from "./http/phase4-routes.js";
+import { phase6Router, type Phase6Dependencies } from "./http/phase6-routes.js";
 
 export interface AppDependencies {
   readiness(): Promise<void>;
   phase2?: Phase2Dependencies;
   phase3?: Phase3Dependencies;
   phase4?: Phase4Dependencies;
+  phase6?: Phase6Dependencies;
 }
 
 export function createApp(dependencies: AppDependencies) {
@@ -34,6 +36,8 @@ export function createApp(dependencies: AppDependencies) {
   }
   if (dependencies.phase4)
     app.use("/api/v1", phase4Router(dependencies.phase4));
+  if (dependencies.phase6)
+    app.use("/api/v1", phase6Router(dependencies.phase6));
 
   app.get("/health", (_request, response) => {
     const body: HealthResponse = { status: "ok", service: "api" };

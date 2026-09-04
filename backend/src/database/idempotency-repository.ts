@@ -24,33 +24,18 @@ export class IdempotencyRepository {
       commandScope: input.commandScope,
       key: input.key,
     };
-    const existing = await collection.findOne(identity, { session });
+    const id = new ObjectId();
+    const existing = await collection.findOneAndUpdate(
+      identity,
+      { $setOnInsert: { _id: id, ...input } },
+      { upsert: true, returnDocument: "before", session },
+    );
     if (existing) return this.match(existing, input.requestFingerprint);
-
-    try {
-      const result = await collection.insertOne(
-        { _id: new ObjectId(), ...input },
-        { session },
-      );
-      return {
-        reused: false as const,
-        id: result.insertedId,
-        responseReference: input.responseReference,
-      };
-    } catch (error) {
-      if (
-        !(
-          error &&
-          typeof error === "object" &&
-          "code" in error &&
-          error.code === 11000
-        )
-      )
-        throw error;
-      const concurrent = await collection.findOne(identity, { session });
-      if (!concurrent) throw error;
-      return this.match(concurrent, input.requestFingerprint);
-    }
+    return {
+      reused: false as const,
+      id,
+      responseReference: input.responseReference,
+    };
   }
 
   private match(record: IdempotencyRecordDocument, fingerprint: string) {

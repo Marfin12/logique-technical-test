@@ -24,6 +24,11 @@ export class ProductRepository implements ProductStore {
     this.versions = db.collection<ProductVersionDocument>("productVersions");
   }
 
+  async findByIds(ids: ObjectId[]): Promise<ProductDocument[]> {
+    if (!ids.length) return [];
+    return this.products.find({ _id: { $in: ids } }).toArray();
+  }
+
   async listActive(at: Date): Promise<ActiveProductVersion[]> {
     const products = await this.products
       .find({ active: true })

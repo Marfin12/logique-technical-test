@@ -290,6 +290,26 @@ async function verifyTransactionsAndIdempotency(
     ),
     /different request/,
   );
+  const concurrentInput = {
+    ...input,
+    key: `phase1-concurrent-${new ObjectId().toHexString()}`,
+  };
+  const concurrent = await Promise.all([
+    runInTransaction(client, (session) =>
+      repository.reserve(concurrentInput, session),
+    ),
+    runInTransaction(client, (session) =>
+      repository.reserve(concurrentInput, session),
+    ),
+  ]);
+  assert.deepEqual(concurrent.map((result) => result.reused).sort(), [
+    false,
+    true,
+  ]);
+  assert.equal(
+    concurrent[0]?.responseReference.applicationId,
+    concurrent[1]?.responseReference.applicationId,
+  );
   return actorId;
 }
 

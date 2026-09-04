@@ -28,7 +28,20 @@ import type { MongoClient } from "mongodb";
 
 const oid = (value: string) =>
   ObjectId.isValid(value) ? new ObjectId(value) : null;
-const dto = (d: any): ApplicationDto => ({
+function normalizeSnapshot(value: any): any {
+  if (value instanceof Decimal128) return value.toString();
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(normalizeSnapshot);
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        normalizeSnapshot(item),
+      ]),
+    );
+  return value;
+}
+export const applicationDto = (d: any): ApplicationDto => ({
   id: d._id.toHexString(),
   userId: d.userId.toHexString(),
   productId: d.productId.toHexString(),
@@ -41,10 +54,23 @@ const dto = (d: any): ApplicationDto => ({
   supplementalData: d.supplementalData,
   createdAt: d.createdAt.toISOString(),
   updatedAt: d.updatedAt.toISOString(),
+  ...(d.profileSnapshot
+    ? { profileSnapshot: normalizeSnapshot(d.profileSnapshot) }
+    : {}),
+  ...(d.productSnapshot
+    ? { productSnapshot: normalizeSnapshot(d.productSnapshot) }
+    : {}),
+  ...(d.premiumSnapshot
+    ? { premiumSnapshot: normalizeSnapshot(d.premiumSnapshot) }
+    : {}),
+  ...(d.reviewerId ? { reviewerId: d.reviewerId.toHexString() } : {}),
+  ...(d.rejectionReason ? { rejectionReason: d.rejectionReason } : {}),
   ...(d.submittedAt ? { submittedAt: d.submittedAt.toISOString() } : {}),
   ...(d.reviewStartedAt
     ? { reviewStartedAt: d.reviewStartedAt.toISOString() }
     : {}),
+  ...(d.approvedAt ? { approvedAt: d.approvedAt.toISOString() } : {}),
+  ...(d.rejectedAt ? { rejectedAt: d.rejectedAt.toISOString() } : {}),
 });
 
 export class ApplicationService {
@@ -106,7 +132,7 @@ export class ApplicationService {
           throw new ConflictError(
             "The idempotent draft could not be recovered.",
           );
-        return { application: dto(existing), reused: true };
+        return { application: applicationDto(existing), reused: true };
       }
       const document = await this.apps.createDraft(
         {
@@ -120,7 +146,7 @@ export class ApplicationService {
         },
         session,
       );
-      return { application: dto(document), reused: false };
+      return { application: applicationDto(document), reused: false };
     };
     return this.client ? runInTransaction(this.client, command) : command();
   }
@@ -143,7 +169,7 @@ export class ApplicationService {
     );
     if (!current) throw new DomainValidationError("Application not found.");
     if (current.status !== "DRAFT")
-      return { application: dto(current), reused: true };
+      return { application: applicationDto(current), reused: true };
     const eligible = await this.products.eligibleProduct(
       principal,
       current.productId.toHexString(),
@@ -186,7 +212,7 @@ export class ApplicationService {
           throw new ConflictError(
             "Submitted application could not be recovered.",
           );
-        return { application: dto(existing), reused: true };
+        return { application: applicationDto(existing), reused: true };
       }
       const updated = await this.apps.submitDraft(
         {
@@ -220,7 +246,7 @@ export class ApplicationService {
         throw new ConflictError(
           "Draft changed elsewhere; reload before applying.",
         );
-      return { application: dto(updated), reused: false };
+      return { application: applicationDto(updated), reused: false };
     };
     return this.client ? runInTransaction(this.client, command) : command();
   }
@@ -230,7 +256,7 @@ export class ApplicationService {
     if (!appId) throw new DomainValidationError("Invalid application id.");
     const d = await this.apps.findOwnedById(new ObjectId(principal.id), appId);
     if (!d) throw new DomainValidationError("Application not found.");
-    return { application: dto(d) };
+    return { application: applicationDto(d) };
   }
   async update(principal: Principal, id: string, input: DraftUpdateRequestDto) {
     requireRole(principal, ["USER"]);
@@ -271,7 +297,7 @@ export class ApplicationService {
     });
     if (!updated)
       throw new ConflictError("Draft changed elsewhere; reload before saving.");
-    return { application: dto(updated) };
+    return { application: applicationDto(updated) };
   }
   async remove(principal: Principal, id: string) {
     requireRole(principal, ["USER"]);

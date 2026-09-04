@@ -28,6 +28,11 @@ export class UserRepository {
     return this.users.findOne({ _id: new ObjectId(id) });
   }
 
+  async findByIds(ids: ObjectId[]): Promise<UserDocument[]> {
+    if (!ids.length) return [];
+    return this.users.find({ _id: { $in: ids } }).toArray();
+  }
+
   async create(input: CreateUserInput): Promise<UserDocument> {
     const now = new Date();
     const user: UserDocument = {

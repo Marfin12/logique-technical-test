@@ -16,6 +16,7 @@ import { ProductService } from "./services/product-service.js";
 import { ApplicationRepository } from "./database/application-repository.js";
 import { IdempotencyRepository } from "./database/idempotency-repository.js";
 import { ApplicationService } from "./services/application-service.js";
+import { AdminReviewService } from "./services/admin-review-service.js";
 
 const config = loadConfig();
 let connection: DatabaseConnection | undefined;
@@ -58,6 +59,16 @@ async function start() {
           idempotency,
           productService,
           () => new Date(),
+          connection.client,
+        ),
+        sessionCodec,
+      },
+      phase6: {
+        adminReviewService: new AdminReviewService(
+          applications,
+          users,
+          profiles,
+          products,
           connection.client,
         ),
         sessionCodec,

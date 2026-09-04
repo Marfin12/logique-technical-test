@@ -252,6 +252,76 @@ export class ApplicationRepository {
       .toArray();
   }
 
+  async listAdminQueue(limit = 50): Promise<ApplicationDocument[]> {
+    return this.db
+      .collection<ApplicationDocument>("applications")
+      .find({
+        status: { $in: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"] },
+        isDeleted: false,
+      })
+      .sort({ submittedAt: -1, _id: -1 })
+      .hint("idx_applications_admin_queue")
+      .limit(Math.min(Math.max(limit, 1), 100))
+      .toArray();
+  }
+
+  async findAdminVisibleById(id: ObjectId, session?: ClientSession) {
+    return this.db
+      .collection<ApplicationDocument>("applications")
+      .findOne(
+        {
+          _id: id,
+          status: {
+            $in: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"],
+          },
+          isDeleted: false,
+        },
+        { session },
+      );
+  }
+
+  async transition(
+    input: {
+      id: ObjectId;
+      from: ApplicationStatus;
+      to: ApplicationStatus;
+      actorId: ObjectId;
+      actorRole: "ADMIN";
+      now: Date;
+      set?: Partial<ApplicationDocument>;
+      reason?: string;
+    },
+    session?: ClientSession,
+  ) {
+    const updated = await this.db
+      .collection<ApplicationDocument>("applications")
+      .findOneAndUpdate(
+        { _id: input.id, status: input.from, isDeleted: false },
+        {
+          $set: { status: input.to, updatedAt: input.now, ...input.set },
+          $inc: { version: 1 },
+        },
+        { returnDocument: "after", session },
+      );
+    if (updated)
+      await this.db
+        .collection<ApplicationStatusEventDocument>("applicationStatusEvents")
+        .insertOne(
+          {
+            _id: new ObjectId(),
+            applicationId: input.id,
+            fromStatus: input.from,
+            toStatus: input.to,
+            actorId: input.actorId,
+            actorRole: input.actorRole,
+            ...(input.reason ? { reason: input.reason } : {}),
+            createdAt: input.now,
+          },
+          { session },
+        );
+    return updated;
+  }
+
   private page(
     documents: ApplicationDocument[],
     limit: number,
