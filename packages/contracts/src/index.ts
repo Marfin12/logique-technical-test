@@ -73,6 +73,7 @@ export interface ApplicationListItemDto {
   userId: string;
   productId: string;
   productVersionId: string;
+  productName?: string;
   selectedInsuranceType?: string;
   status: ApplicationStatus;
   version: number;

@@ -230,6 +230,12 @@ export class ApplicationService {
             name: eligible.product.name,
             version: eligible.version.version,
             insuranceTypes: eligible.version.insuranceTypes,
+            description: eligible.version.description,
+            coverage: eligible.version.coverage,
+            benefits: eligible.version.benefits,
+            limitations: eligible.version.limitations,
+            supplementalSchemaVersion:
+              eligible.version.supplementalSchema.version,
           },
           premiumSnapshot: {
             amount: Decimal128.fromString(eligible.premium.amount),

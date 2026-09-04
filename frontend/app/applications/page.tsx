@@ -18,7 +18,7 @@ export default async function ApplicationsPage() {
                 href={`/applications/${item.id}`}
                 className="font-semibold text-blue-800 hover:underline"
               >
-                {item.productId}
+                {item.productName ?? `Product ${item.productId.slice(-6)}`}
               </Link>
               <span className="ml-3 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
                 {item.status}

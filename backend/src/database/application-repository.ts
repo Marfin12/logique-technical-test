@@ -29,6 +29,9 @@ function toListItem(document: ApplicationDocument): ApplicationListItemDto {
     userId: document.userId.toHexString(),
     productId: document.productId.toHexString(),
     productVersionId: document.productVersionId.toHexString(),
+    ...(typeof document.productSnapshot?.name === "string"
+      ? { productName: document.productSnapshot.name }
+      : {}),
     ...(document.selectedInsuranceType
       ? { selectedInsuranceType: document.selectedInsuranceType }
       : {}),
@@ -266,18 +269,16 @@ export class ApplicationRepository {
   }
 
   async findAdminVisibleById(id: ObjectId, session?: ClientSession) {
-    return this.db
-      .collection<ApplicationDocument>("applications")
-      .findOne(
-        {
-          _id: id,
-          status: {
-            $in: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"],
-          },
-          isDeleted: false,
+    return this.db.collection<ApplicationDocument>("applications").findOne(
+      {
+        _id: id,
+        status: {
+          $in: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"],
         },
-        { session },
-      );
+        isDeleted: false,
+      },
+      { session },
+    );
   }
 
   async transition(

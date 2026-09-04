@@ -20,6 +20,7 @@ export const APPLICATION_LIST_PROJECTION = {
   updatedAt: 1,
   submittedAt: 1,
   reviewStartedAt: 1,
+  "productSnapshot.name": 1,
 } as const;
 
 interface QuerySpec {
