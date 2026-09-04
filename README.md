@@ -63,6 +63,24 @@ docker compose config
 
 `npm test` includes unit tests plus a small Express integration test. The full CI flow is defined in `.github/workflows/ci.yml`.
 
+## Phase 1 database verification
+
+Run the MongoDB validator, exact-index, transaction, idempotency, keyset-pagination, narrow-projection, and query-plan checks in an isolated temporary database:
+
+```sh
+docker compose --profile tools run --rm db-verify
+```
+
+The verifier drops only its dedicated `insurance_phase1_verify` database when it finishes. To load the deterministic product fixtures into the development database, run:
+
+```sh
+docker compose --profile tools run --rm seed
+```
+
+Every seeded product is visibly marked `[TEST ONLY]` and must not be treated as approved insurance or rating policy.
+
+Phase 1 provides canonical shared enums and DTOs, MongoDB JSON Schema validators and indexes, transactional repository primitives, decimal-safe money serialization, idempotency fingerprints and records, and keyset-paginated application queries. It does not expose user-facing product or application endpoints yet; those are introduced by later phases.
+
 ## Documentation
 
 - `rules.md` — normative application rules

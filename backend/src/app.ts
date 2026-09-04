@@ -1,9 +1,9 @@
-import { randomUUID } from "node:crypto";
-
-import express, { type ErrorRequestHandler } from "express";
+import express from "express";
 import helmet from "helmet";
 
-import type { HealthResponse } from "@insurance/contracts";
+import type { ErrorDto, HealthResponse } from "@insurance/contracts";
+
+import { errorHandler, requestIdMiddleware } from "./http/middleware.js";
 
 export interface AppDependencies {
   readiness(): Promise<void>;
@@ -13,12 +13,8 @@ export function createApp(dependencies: AppDependencies) {
   const app = express();
   app.disable("x-powered-by");
   app.use(helmet({ strictTransportSecurity: false }));
+  app.use(requestIdMiddleware);
   app.use(express.json({ limit: "100kb" }));
-  app.use((request, response, next) => {
-    request.headers["x-request-id"] ??= randomUUID();
-    response.setHeader("x-request-id", request.headers["x-request-id"]);
-    next();
-  });
 
   app.get("/health", (_request, response) => {
     const body: HealthResponse = { status: "ok", service: "api" };
@@ -31,25 +27,15 @@ export function createApp(dependencies: AppDependencies) {
   });
 
   app.use((_request, response) => {
-    response
-      .status(404)
-      .json({ error: { code: "NOT_FOUND", message: "Resource not found." } });
-  });
-
-  const errorHandler: ErrorRequestHandler = (
-    error,
-    request,
-    response,
-    _next,
-  ) => {
-    console.error({ requestId: request.headers["x-request-id"], error });
-    response.status(500).json({
+    const body: ErrorDto = {
       error: {
-        code: "INTERNAL_ERROR",
-        message: "An unexpected error occurred.",
+        code: "NOT_FOUND",
+        message: "Resource not found.",
+        requestId: response.locals.requestId as string,
       },
-    });
-  };
+    };
+    response.status(404).json(body);
+  });
   app.use(errorHandler);
   return app;
 }

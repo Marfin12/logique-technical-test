@@ -40,3 +40,13 @@ jobs:
           image-ref: insurance-web:ci
           severity: CRITICAL,HIGH
           exit-code: "1"
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Phase 1 MongoDB contracts and queries
+        run: docker compose --profile tools run --build --rm db-verify
+      - name: Remove verification resources
+        if: always()
+        run: docker compose --profile tools down --volumes

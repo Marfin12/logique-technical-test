@@ -21,10 +21,40 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    command: ["node", "backend/dist/database/migrate-cli.js"]
+    command: ["node", "backend/dist/migrations/migrate-cli.js"]
     environment:
       MONGODB_URI: mongodb://mongo:27017/insurance?replicaSet=rs0
       MONGODB_DB_NAME: insurance
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks: [internal]
+    restart: "no"
+
+  seed:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: ["node", "backend/dist/database/seed-cli.js"]
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/insurance?replicaSet=rs0
+      MONGODB_DB_NAME: insurance
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks: [internal]
+    restart: "no"
+
+  db-verify:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: ["node", "backend/dist/database/verify-phase1.js"]
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/insurance_phase1_verify?replicaSet=rs0
+      MONGODB_DB_NAME: insurance_phase1_verify
     depends_on:
       mongo:
         condition: service_healthy

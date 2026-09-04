@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:integration": "vitest run src/app.test.ts",
     "test:coverage": "vitest run --coverage",
-    "db:migrate": "tsx src/database/migrate-cli.ts"
+    "db:migrate": "tsx src/migrations/migrate-cli.ts",
+    "db:seed": "tsx src/database/seed-cli.ts",
+    "db:verify:phase1": "tsx src/database/verify-phase1.ts"
   },
   "dependencies": {
     "@insurance/contracts": "*",

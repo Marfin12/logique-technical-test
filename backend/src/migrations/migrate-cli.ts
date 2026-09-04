@@ -1,5 +1,5 @@
 import { loadConfig } from "../config.js";
-import { connectDatabase } from "./client.js";
+import { connectDatabase } from "../database/client.js";
 import { runMigrations } from "./migrations.js";
 
 const config = loadConfig();

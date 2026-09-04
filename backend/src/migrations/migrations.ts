@@ -1,5 +1,7 @@
 import type { Db, Document } from "mongodb";
 
+import { COLLECTION_SPECS, INDEX_SPECS } from "./schema.js";
+
 export interface Migration {
   id: string;
   up(db: Db): Promise<void>;
@@ -9,6 +11,7 @@ async function collectionExists(db: Db, name: string): Promise<boolean> {
   return db.listCollections({ name }, { nameOnly: true }).hasNext();
 }
 
+/** Ordered, idempotent changes to the MongoDB database structure. */
 export const MIGRATIONS: Migration[] = [
   {
     id: "000-foundation",
@@ -39,6 +42,33 @@ export const MIGRATIONS: Migration[] = [
           { key: 1 },
           { unique: true, name: "uq_system_metadata_key" },
         );
+    },
+  },
+  {
+    id: "001-contracts-and-persistence",
+    async up(db) {
+      for (const spec of COLLECTION_SPECS) {
+        if (!(await collectionExists(db, spec.name))) {
+          await db.createCollection(spec.name, {
+            validator: spec.validator,
+            validationLevel: "strict",
+            validationAction: "error",
+          });
+        } else {
+          await db.command({
+            collMod: spec.name,
+            validator: spec.validator,
+            validationLevel: "strict",
+            validationAction: "error",
+          });
+        }
+      }
+
+      for (const [collectionName, indexes] of Object.entries(INDEX_SPECS)) {
+        for (const index of indexes) {
+          await db.collection(collectionName).createIndex(index.key, index);
+        }
+      }
     },
   },
 ];

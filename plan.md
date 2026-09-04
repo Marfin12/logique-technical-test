@@ -230,38 +230,38 @@ Phases are ordered by dependency, not calendar duration. Work may run in paralle
 
 ### Backend and database tasks
 
-- [ ] Define the canonical enums from `rules.md`: role, payment frequency, payment method, and application status.
-- [ ] Configure MongoDB and use MQL through the official MongoDB Node.js driver.
-- [ ] Create versioned, idempotent setup migrations for `users`, `masterProfiles`, `products`, `productVersions`, `applications`, `applicationStatusEvents`, and `idempotencyRecords`.
-- [ ] Add MongoDB `$jsonSchema` validators for BSON types, required fields, and canonical enums.
-- [ ] Add all required unique, compound, partial, and TTL indexes from `design.md`.
-- [ ] Implement repository patterns and MongoDB sessions/`withTransaction` for multi-document commands.
-- [ ] Configure the Docker MongoDB service as a replica set so transactions work locally.
-- [ ] Define UTC timestamp and decimal-safe money handling.
-- [ ] Add request IDs, structured error responses, and validation middleware.
-- [ ] Add authorization primitives for role and resource ownership.
-- [ ] Define the idempotency-key contract and request-fingerprint behavior.
-- [ ] Create deterministic development/test product fixtures with explicit test-only labels.
-- [ ] Implement cursor/keyset pagination for user and admin application lists.
-- [ ] Add narrow list projections that exclude supplemental data and submission snapshots.
+- [x] Define the canonical enums from `rules.md`: role, payment frequency, payment method, and application status.
+- [x] Configure MongoDB and use MQL through the official MongoDB Node.js driver.
+- [x] Create versioned, idempotent setup migrations for `users`, `masterProfiles`, `products`, `productVersions`, `applications`, `applicationStatusEvents`, and `idempotencyRecords`.
+- [x] Add MongoDB `$jsonSchema` validators for BSON types, required fields, and canonical enums.
+- [x] Add all required unique, compound, partial, and TTL indexes from `design.md`.
+- [x] Implement repository patterns and MongoDB sessions/`withTransaction` for multi-document commands.
+- [x] Configure the Docker MongoDB service as a replica set so transactions work locally.
+- [x] Define UTC timestamp and decimal-safe money handling.
+- [x] Add request IDs, structured error responses, and validation middleware.
+- [x] Add authorization primitives for role and resource ownership.
+- [x] Define the idempotency-key contract and request-fingerprint behavior.
+- [x] Create deterministic development/test product fixtures with explicit test-only labels.
+- [x] Implement cursor/keyset pagination for user and admin application lists.
+- [x] Add narrow list projections that exclude supplemental data and submission snapshots.
 
 ### Shared contract tasks
 
-- [ ] Define request/response DTOs without exposing password hashes or internal configuration.
-- [ ] Define a stable error shape with error code, message, and optional field errors.
-- [ ] Define pagination and filtering contracts for application lists.
-- [ ] Ensure frontend and backend use the same canonical string enum values.
+- [x] Define request/response DTOs without exposing password hashes or internal configuration.
+- [x] Define a stable error shape with error code, message, and optional field errors.
+- [x] Define pagination and filtering contracts for application lists.
+- [x] Ensure frontend and backend use the same canonical string enum values.
 
 ### Tests
 
-- [ ] Unit tests for Express request parsing/error mapping and each domain/service rule introduced in this phase.
-- [ ] Collection-validator and index-migration tests.
-- [ ] Tests that assert required index names, key order, uniqueness, partial filters, and TTL configuration.
-- [ ] `explain("executionStats")` tests/checks for user history, draft resume, admin queue, reviewer queue, and application status history queries.
-- [ ] Pagination tests proving stable results without deep `skip`.
-- [ ] Serialization tests for money, dates, and enums.
-- [ ] Authorization primitive tests.
-- [ ] Idempotency-record behavior tests.
+- [x] Unit tests for Express request parsing/error mapping and each domain/service rule introduced in this phase.
+- [x] Collection-validator and index-migration tests.
+- [x] Tests that assert required index names, key order, uniqueness, partial filters, and TTL configuration.
+- [x] `explain("executionStats")` tests/checks for user history, draft resume, admin queue, reviewer queue, and application status history queries.
+- [x] Pagination tests proving stable results without deep `skip`.
+- [x] Serialization tests for money, dates, and enums.
+- [x] Authorization primitive tests.
+- [x] Idempotency-record behavior tests.
 
 ### Exit criteria
 
@@ -655,7 +655,7 @@ A task is done only when:
 ## 18. Completion checklist
 
 - [x] Phase 0 complete — project foundation
-- [ ] Phase 1 complete — contracts and persistence
+- [x] Phase 1 complete — contracts and persistence
 - [ ] Phase 2 complete — authentication and profile
 - [ ] Phase 3 complete — product matching and premium
 - [ ] Phase 4 complete — product application and draft
