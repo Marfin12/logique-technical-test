@@ -123,6 +123,59 @@ export class ApplicationRepository {
       );
   }
 
+  async submitDraft(
+    input: {
+      userId: ObjectId;
+      id: ObjectId;
+      version: number;
+      profileSnapshot: Record<string, unknown>;
+      productSnapshot: Record<string, unknown>;
+      premiumSnapshot: Record<string, unknown>;
+      now: Date;
+    },
+    session?: ClientSession,
+  ) {
+    const updated = await this.db
+      .collection<ApplicationDocument>("applications")
+      .findOneAndUpdate(
+        {
+          _id: input.id,
+          userId: input.userId,
+          status: "DRAFT",
+          isDeleted: false,
+          version: input.version,
+        },
+        {
+          $set: {
+            profileSnapshot: input.profileSnapshot,
+            productSnapshot: input.productSnapshot,
+            premiumSnapshot: input.premiumSnapshot,
+            submittedAt: input.now,
+            updatedAt: input.now,
+            status: "SUBMITTED",
+          },
+          $inc: { version: 1 },
+        },
+        { returnDocument: "after", session },
+      );
+    if (updated)
+      await this.db
+        .collection<ApplicationStatusEventDocument>("applicationStatusEvents")
+        .insertOne(
+          {
+            _id: new ObjectId(),
+            applicationId: updated._id,
+            fromStatus: "DRAFT",
+            toStatus: "SUBMITTED",
+            actorId: input.userId,
+            actorRole: "USER",
+            createdAt: input.now,
+          },
+          { session },
+        );
+    return updated;
+  }
+
   async listForUser(input: {
     userId: ObjectId;
     status?: ApplicationStatus;

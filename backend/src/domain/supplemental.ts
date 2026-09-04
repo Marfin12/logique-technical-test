@@ -74,3 +74,28 @@ export function validateSupplementalPatch(
       throw new DomainValidationError(`Invalid supplemental field: ${key}.`);
   }
 }
+
+export function validateRequiredSupplemental(
+  schema: { fields: SupplementalFieldDto[] },
+  data: Record<string, unknown>,
+) {
+  validateSupplementalPatch(schema, data);
+  const missing = schema.fields.filter((field) => {
+    const value = data[field.key];
+    return (
+      field.required &&
+      (value === undefined ||
+        value === null ||
+        (typeof value === "string" && value.trim() === "") ||
+        (Array.isArray(value) && value.length === 0))
+    );
+  });
+  if (missing.length)
+    throw new DomainValidationError(
+      "Complete all required product details before applying.",
+      missing.map((field) => ({
+        field: field.key,
+        message: "This field is required.",
+      })),
+    );
+}

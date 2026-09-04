@@ -37,31 +37,72 @@ export function phase4Router(dependencies: Phase4Dependencies) {
         req.body,
         req.header("Idempotency-Key") ?? undefined,
       );
+      res.status(result.reused ? 200 : 201).json({
+        application: result.application,
+      } satisfies ApplicationResponseDto);
+    }),
+  );
+  router.post(
+    "/me/applications/:id/submit",
+    auth,
+    asyncHandler(async (req, res) => {
+      const id = Array.isArray(req.params.id)
+        ? (req.params.id[0] ?? "")
+        : (req.params.id ?? "");
+      const result = await dependencies.applicationService.submit(
+        principalFrom(res.locals),
+        id,
+        req.header("Idempotency-Key") ?? undefined,
+      );
       res
-        .status(result.reused ? 200 : 201)
+        .status(result.reused ? 200 : 200)
         .json({
           application: result.application,
         } satisfies ApplicationResponseDto);
     }),
   );
-  router.get("/me/applications/:id", auth, asyncHandler(async (req, res) => {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] ?? "" : req.params.id ?? "";
-    res.json(await dependencies.applicationService.get(principalFrom(res.locals), id));
-  }));
+  router.get(
+    "/me/applications/:id",
+    auth,
+    asyncHandler(async (req, res) => {
+      const id = Array.isArray(req.params.id)
+        ? (req.params.id[0] ?? "")
+        : (req.params.id ?? "");
+      res.json(
+        await dependencies.applicationService.get(
+          principalFrom(res.locals),
+          id,
+        ),
+      );
+    }),
+  );
   router.patch(
     "/me/applications/:id/draft",
     auth,
     asyncHandler(async (req, res) => {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] ?? "" : req.params.id ?? "";
-      res.json(await dependencies.applicationService.update(principalFrom(res.locals), id, req.body));
+      const id = Array.isArray(req.params.id)
+        ? (req.params.id[0] ?? "")
+        : (req.params.id ?? "");
+      res.json(
+        await dependencies.applicationService.update(
+          principalFrom(res.locals),
+          id,
+          req.body,
+        ),
+      );
     }),
   );
   router.delete(
     "/me/applications/:id/draft",
     auth,
     asyncHandler(async (req, res) => {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] ?? "" : req.params.id ?? "";
-      await dependencies.applicationService.remove(principalFrom(res.locals), id);
+      const id = Array.isArray(req.params.id)
+        ? (req.params.id[0] ?? "")
+        : (req.params.id ?? "");
+      await dependencies.applicationService.remove(
+        principalFrom(res.locals),
+        id,
+      );
       res.status(204).send();
     }),
   );

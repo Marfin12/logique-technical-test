@@ -658,8 +658,8 @@ A task is done only when:
 - [x] Phase 1 complete — contracts and persistence
 - [x] Phase 2 complete — authentication and profile
 - [x] Phase 3 complete — product matching and premium
-- [ ] Phase 4 complete — product application and draft
-- [ ] Phase 5 complete — submission and user progress
+- [x] Phase 4 complete — product application and draft
+- [x] Phase 5 complete — submission and user progress
 - [ ] Phase 6 complete — admin lifecycle
 - [ ] Phase 7 complete — chatbot
 - [ ] Phase 8 complete — Docker deployment, hardening, and release

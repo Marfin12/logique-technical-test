@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { Decimal128, ObjectId } from "mongodb";
 import type { ClientSession } from "mongodb";
 import type {
   ApplicationDto,
@@ -19,6 +19,7 @@ import {
 } from "../domain/idempotency.js";
 import {
   validateDraftTrigger,
+  validateRequiredSupplemental,
   validateSupplementalPatch,
 } from "../domain/supplemental.js";
 import type { ProductService } from "./product-service.js";
@@ -130,6 +131,98 @@ export class ApplicationService {
       userId: new ObjectId(principal.id),
       status,
     });
+  }
+  async submit(principal: Principal, id: string, keyHeader?: string) {
+    requireRole(principal, ["USER"]);
+    const key = parseIdempotencyKey(keyHeader);
+    const appId = oid(id);
+    if (!appId) throw new DomainValidationError("Invalid application id.");
+    const current = await this.apps.findOwnedById(
+      new ObjectId(principal.id),
+      appId,
+    );
+    if (!current) throw new DomainValidationError("Application not found.");
+    if (current.status !== "DRAFT")
+      return { application: dto(current), reused: true };
+    const eligible = await this.products.eligibleProduct(
+      principal,
+      current.productId.toHexString(),
+    );
+    if (
+      !current.selectedInsuranceType ||
+      !eligible.version.insuranceTypes.includes(current.selectedInsuranceType)
+    )
+      throw new DomainValidationError(
+        "Choose a valid insurance type before applying.",
+      );
+    validateRequiredSupplemental(
+      eligible.version.supplementalSchema,
+      current.supplementalData as Record<string, unknown>,
+    );
+    const fp = requestFingerprint({
+      applicationId: id,
+      version: current.version,
+    });
+    const command = async (session?: ClientSession) => {
+      const reserved = await this.idempotency.reserve(
+        {
+          actorId: new ObjectId(principal.id),
+          commandScope: "SUBMIT_APPLICATION",
+          key,
+          requestFingerprint: fp,
+          responseReference: { applicationId: id },
+          createdAt: this.now(),
+          expiresAt: new Date(this.now().getTime() + 86400000),
+        },
+        session as any,
+      );
+      if (reserved.reused) {
+        const existing = await this.apps.findOwnedById(
+          new ObjectId(principal.id),
+          appId,
+          session,
+        );
+        if (!existing)
+          throw new ConflictError(
+            "Submitted application could not be recovered.",
+          );
+        return { application: dto(existing), reused: true };
+      }
+      const updated = await this.apps.submitDraft(
+        {
+          userId: new ObjectId(principal.id),
+          id: appId,
+          version: current.version,
+          profileSnapshot: {
+            age: eligible.profile.age,
+            sumAssured: eligible.profile.sumAssured,
+            paymentFrequency: eligible.profile.paymentFrequency,
+            paymentMethod: eligible.profile.paymentMethod,
+          },
+          productSnapshot: {
+            id: eligible.product._id.toHexString(),
+            name: eligible.product.name,
+            version: eligible.version.version,
+            insuranceTypes: eligible.version.insuranceTypes,
+          },
+          premiumSnapshot: {
+            amount: Decimal128.fromString(eligible.premium.amount),
+            currency: eligible.premium.currency,
+            paymentFrequency: eligible.premium.paymentFrequency,
+            ratingVersion: eligible.version.ratingConfig.version,
+            calculatedAt: this.now(),
+          },
+          now: this.now(),
+        },
+        session,
+      );
+      if (!updated)
+        throw new ConflictError(
+          "Draft changed elsewhere; reload before applying.",
+        );
+      return { application: dto(updated), reused: false };
+    };
+    return this.client ? runInTransaction(this.client, command) : command();
   }
   async get(principal: Principal, id: string) {
     requireRole(principal, ["USER"]);
