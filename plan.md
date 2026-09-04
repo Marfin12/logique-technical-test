@@ -194,25 +194,25 @@ Phases are ordered by dependency, not calendar duration. Work may run in paralle
 
 ### Tasks
 
-- [ ] Record the technical choices listed in Section 4.
-- [ ] Establish the Next.js TypeScript web application with Tailwind CSS.
-- [ ] Establish the Node.js TypeScript API application with Express.
-- [ ] Add a shared contracts package or an equivalent API type-generation workflow.
-- [ ] Enable TypeScript strict mode for frontend, backend, and shared contracts.
-- [ ] Configure simple typed Express routing, middleware, centralized error handling, and service boundaries.
-- [ ] Configure the Tailwind theme, responsive breakpoints, accessible focus states, and reusable base components.
-- [ ] Add formatting, linting, type-checking, unit-test, unit-coverage, integration-test, and build commands.
-- [ ] Make unit tests and type-checking mandatory CI checks.
-- [ ] Configure environment-variable validation and checked-in example configuration without secrets.
-- [ ] Add local MongoDB as a single-node replica set and deterministic collection-validator/index migration commands.
-- [ ] Add multi-stage Dockerfiles for the Next.js and Node.js services.
-- [ ] Add a Docker Compose definition for web, API, MongoDB replica-set initialization, internal networking, and persistent database storage.
-- [ ] Configure the web service as the only published HTTP entry point and proxy `/api` internally.
-- [ ] Run application containers as non-root users with minimal runtime images.
-- [ ] Add `.dockerignore` files, container health checks, restart policies, and environment-based configuration.
-- [ ] Add CI that installs dependencies, validates formatting, lints, type-checks, tests, and builds.
-- [ ] Add CI container-image builds and vulnerability scanning.
-- [ ] Define fixture-versus-approved-deployment configuration boundaries.
+- [x] Record the technical choices listed in Section 4.
+- [x] Establish the Next.js TypeScript web application with Tailwind CSS.
+- [x] Establish the Node.js TypeScript API application with Express.
+- [x] Add a shared contracts package or an equivalent API type-generation workflow.
+- [x] Enable TypeScript strict mode for frontend, backend, and shared contracts.
+- [x] Configure simple typed Express routing, middleware, centralized error handling, and service boundaries.
+- [x] Configure the Tailwind theme, responsive breakpoints, accessible focus states, and reusable base components.
+- [x] Add formatting, linting, type-checking, unit-test, unit-coverage, integration-test, and build commands.
+- [x] Make unit tests and type-checking mandatory CI checks.
+- [x] Configure environment-variable validation and checked-in example configuration without secrets.
+- [x] Add local MongoDB as a single-node replica set and deterministic collection-validator/index migration commands.
+- [x] Add multi-stage Dockerfiles for the Next.js and Node.js services.
+- [x] Add a Docker Compose definition for web, API, MongoDB replica-set initialization, internal networking, and persistent database storage.
+- [x] Configure the web service as the only published HTTP entry point and proxy `/api` internally.
+- [x] Run application containers as non-root users with minimal runtime images.
+- [x] Add `.dockerignore` files, container health checks, restart policies, and environment-based configuration.
+- [x] Add CI that installs dependencies, validates formatting, lints, type-checks, tests, and builds.
+- [x] Add CI container-image builds and vulnerability scanning.
+- [x] Define fixture-versus-approved-deployment configuration boundaries.
 
 ### Exit criteria
 
@@ -654,7 +654,7 @@ A task is done only when:
 
 ## 18. Completion checklist
 
-- [ ] Phase 0 complete — project foundation
+- [x] Phase 0 complete — project foundation
 - [ ] Phase 1 complete — contracts and persistence
 - [ ] Phase 2 complete — authentication and profile
 - [ ] Phase 3 complete — product matching and premium

@@ -68,9 +68,8 @@ flowchart LR
 The application should be organized as a monorepo or two deployable applications sharing generated API types or a common contract package:
 
 ```text
-apps/
-  web/          Next.js application
-  api/          Node.js application
+frontend/ Next.js application
+backend/ Node.js application
 packages/
   contracts/    API DTOs, enums, and validation-compatible types
   config/       shared non-secret tooling configuration
@@ -93,6 +92,19 @@ This folder layout is recommended, not a requirement. Business domain code must 
 | Lifecycle transition | Requests action | Validates and commits atomically |
 | Audit trail | Not authoritative | Records material events |
 | Chatbot | Widget/UI | Scopes context and calls provider |
+
+### 4.2 Next.js Server and Client Components
+
+- Components in `frontend/app` and `frontend/components` are Server Components by default.
+- Add `"use client"` only to the smallest interactive leaf that requires browser APIs, event handlers, local state, or effects.
+- Keep data loading, authorization-aware rendering, and server-only dependencies in Server Components or the backend. Never expose secrets through Client Component props or bundles.
+- The Phase 0 landing page and `Panel` are intentionally Server Components because they have no browser-side interaction. No Client Component boundary is needed yet.
+
+### 4.3 Message queue decision
+
+Phase 0 must not introduce a message broker. Its startup, health checks, migrations, and current HTTP behavior are synchronous, so a queue would add operational failure modes without providing delivery or scaling value.
+
+Later phases may add a queue only for a concrete asynchronous requirement such as notifications or external integrations. Core application state transitions remain synchronous and authoritative in MongoDB. If a transition later publishes an event, use a transactional outbox so committing business state does not depend on the broker being available.
 
 ## 5. User experience and routes
 

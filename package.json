@@ -1,0 +1,39 @@
+{
+  "name": "simple-insurance-application",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.17.0",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:contracts": "npm run build -w @insurance/contracts",
+    "build": "npm run build:contracts && npm run build -w @insurance/backend && npm run build -w @insurance/frontend",
+    "dev": "npm run build:contracts && concurrently --names backend,frontend -c blue,green \"npm run dev -w @insurance/backend\" \"npm run dev -w @insurance/frontend\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint frontend packages backend --max-warnings=0",
+    "typecheck": "npm run build:contracts && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:contracts && npm run test --workspaces --if-present",
+    "test:integration": "npm run build:contracts && npm run test:integration -w @insurance/backend",
+    "test:coverage": "npm run build:contracts && npm run test:coverage --workspaces --if-present",
+    "db:migrate": "npm run db:migrate -w @insurance/backend",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.3.0",
+    "@vitest/coverage-v8": "5.0.0",
+    "concurrently": "9.2.1",
+    "eslint": "10.9.1",
+    "prettier": "3.6.2",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.69.0",
+    "vitest": "5.0.0"
+  }
+}

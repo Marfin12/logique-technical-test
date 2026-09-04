@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install --global npm@11.17.0
+      - run: npm ci
+      - run: npm run verify
+
+  containers:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -f docker/api.Dockerfile -t insurance-api:ci .
+      - name: Build web image
+        run: docker build -f docker/web.Dockerfile -t insurance-web:ci .
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: insurance-api:ci
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+      - name: Scan web image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: insurance-web:ci
+          severity: CRITICAL,HIGH
+          exit-code: "1"

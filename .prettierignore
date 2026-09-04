@@ -1,0 +1,9 @@
+.next
+dist
+coverage
+node_modules
+package-lock.json
+docs
+design.md
+plan.md
+rules.md

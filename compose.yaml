@@ -1,0 +1,81 @@
+services:
+  mongo:
+    image: mongo:8.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'mongosh --quiet --eval ''try { quit(rs.status().ok ? 0 : 1) } catch (error) { quit(rs.initiate({_id:"rs0",members:[{_id:0,host:"mongo:27017"}]}).ok ? 0 : 1) }''',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    networks: [internal]
+
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: ["node", "backend/dist/database/migrate-cli.js"]
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/insurance?replicaSet=rs0
+      MONGODB_DB_NAME: insurance
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks: [internal]
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/insurance?replicaSet=rs0
+      MONGODB_DB_NAME: insurance
+      API_PORT: 4000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:4000/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        API_INTERNAL_URL: http://api:4000
+    environment:
+      API_INTERNAL_URL: http://api:4000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${HTTP_BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-80}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [edge, internal]
+    restart: unless-stopped
+
+networks:
+  edge:
+  internal:
+    internal: true
+
+volumes:
+  mongo-data:
