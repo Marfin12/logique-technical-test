@@ -661,7 +661,7 @@ A task is done only when:
 - [x] Phase 4 complete — product application and draft
 - [x] Phase 5 complete — submission and user progress
 - [x] Phase 6 complete — admin lifecycle
-- [ ] Phase 7 complete — chatbot
+- [x] Phase 7 complete — chatbot
 - [ ] Phase 8 complete — Docker deployment, hardening, and release
 - [ ] All release gates passed
 - [ ] Final stakeholder acceptance recorded
