@@ -46,6 +46,20 @@ npm run db:migrate
 npm run dev
 ```
 
+For a host-side migration using the Compose MongoDB service, start MongoDB first. The default URI uses `directConnection=true` so the host does not try to resolve MongoDB's internal Docker hostname:
+
+```sh
+docker compose up -d mongo
+npm run build -w @insurance/backend
+node backend/dist/migrations/migrate-cli.js
+```
+
+Alternatively, run the migration entirely inside Docker:
+
+```sh
+docker compose run --rm migrate
+```
+
 Next.js runs on `http://localhost:3000`; Express runs internally on `http://localhost:4000`.
 
 The Express process retries an unavailable MongoDB connection every two seconds instead of terminating on the first failed attempt. Database failures after startup are passed through the centralized HTTP error boundary and return a structured `500` response with a request ID; repository and transaction errors are still rethrown so they cannot be mistaken for successful writes.
@@ -126,6 +140,7 @@ All eligibility limits, rates, frequency factors, method factors, and rounding s
 - `rules.md` — normative application rules
 - `design.md` — target architecture and data design
 - `plan.md` — phased implementation plan
+
 ## Phase 4: draft applications
 
 Open a product detail page while signed in. Viewing and scrolling remain side-effect free; choosing an insurance type or changing a product-specific field creates one `DRAFT` application. Subsequent edits use optimistic versioning and display `Saving`, `Saved`, or a retryable failure. Drafts can be resumed from `/applications` and `/applications/:id`.
@@ -135,3 +150,9 @@ The draft API uses `POST /api/v1/me/applications/drafts` with an `Idempotency-Ke
 ## Phase 6: admin review
 
 Sign in with the seeded admin account and open `/admin/applications`. Drafts are excluded. A submitted row exposes **Start Review**; the transition completes before navigation to the read-only detail page. Under-review detail pages expose **Approve** and **Reject**, with a required rejection reason. Direct detail navigation never changes status, and stale or terminal transitions return `409 Conflict`.
+
+## Phase 7: insurance assistant
+
+Authenticated customer pages include a persistent **Chat** launcher. The assistant uses local approved insurance/status content and may read only the authenticated customer's application status. It cannot invoke application mutations, access admin/other-customer context, or invent unsupported answers. Messages are not persisted. The endpoint is `POST /api/v1/chat/messages` and is rate-limited to 20 requests per minute per client.
+
+The default provider remains local and requires no external account. To enable the optional Gemini API integration with automatic local fallback, follow [the Gemini setup guide](docs/GEMINI_SETUP.md).

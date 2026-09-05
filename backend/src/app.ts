@@ -7,11 +7,13 @@ import {
   asyncHandler,
   errorHandler,
   requestIdMiddleware,
+  requestLogMiddleware,
 } from "./http/middleware.js";
 import { phase2Router, type Phase2Dependencies } from "./http/phase2-routes.js";
 import { phase3Router, type Phase3Dependencies } from "./http/phase3-routes.js";
 import { phase4Router, type Phase4Dependencies } from "./http/phase4-routes.js";
 import { phase6Router, type Phase6Dependencies } from "./http/phase6-routes.js";
+import { phase7Router, type Phase7Dependencies } from "./http/phase7-routes.js";
 
 export interface AppDependencies {
   readiness(): Promise<void>;
@@ -19,13 +21,16 @@ export interface AppDependencies {
   phase3?: Phase3Dependencies;
   phase4?: Phase4Dependencies;
   phase6?: Phase6Dependencies;
+  phase7?: Phase7Dependencies;
 }
 
 export function createApp(dependencies: AppDependencies) {
+  console.log("initiating")
   const app = express();
   app.disable("x-powered-by");
   app.use(helmet({ strictTransportSecurity: false }));
   app.use(requestIdMiddleware);
+  app.use(requestLogMiddleware());
   app.use(express.json({ limit: "100kb" }));
 
   if (dependencies.phase2) {
@@ -38,6 +43,8 @@ export function createApp(dependencies: AppDependencies) {
     app.use("/api/v1", phase4Router(dependencies.phase4));
   if (dependencies.phase6)
     app.use("/api/v1", phase6Router(dependencies.phase6));
+  if (dependencies.phase7)
+    app.use("/api/v1", phase7Router(dependencies.phase7));
 
   app.get("/health", (_request, response) => {
     const body: HealthResponse = { status: "ok", service: "api" };

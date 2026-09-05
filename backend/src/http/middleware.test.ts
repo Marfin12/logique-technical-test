@@ -6,6 +6,7 @@ import { ValidationError } from "../domain/errors.js";
 import {
   errorHandler,
   requestIdMiddleware,
+  requestLogMiddleware,
   validateBody,
 } from "./middleware.js";
 
@@ -59,5 +60,27 @@ describe("HTTP validation and error mapping", () => {
     expect(response.body.error.message).toBe(
       "Request body contains invalid JSON.",
     );
+  });
+});
+
+describe("safe HTTP request logging", () => {
+  it("logs request metadata without logging the request body", async () => {
+    const lines: string[] = [];
+    const app = express();
+    app.use(express.json());
+    app.use(requestIdMiddleware);
+    app.use(requestLogMiddleware((line) => lines.push(line)));
+    app.post("/chat", (_request, response) => response.status(201).end());
+
+    await request(app).post("/chat").send({ message: "private chat text" });
+
+    expect(lines).toHaveLength(1);
+    expect(JSON.parse(lines[0]!)).toMatchObject({
+      event: "http_request",
+      method: "POST",
+      path: "/chat",
+      status: 201,
+    });
+    expect(lines[0]).not.toContain("private chat text");
   });
 });

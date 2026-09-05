@@ -147,6 +147,14 @@ export interface RejectApplicationRequestDto {
   reason: string;
 }
 
+export interface ChatMessageRequestDto {
+  message: string;
+}
+export interface ChatMessageResponseDto {
+  answer: string;
+  source: "KNOWLEDGE_BASE" | "APPLICATION_STATUS" | "FALLBACK";
+}
+
 export interface IdempotencyKeyContract {
   key: string;
   commandScope: string;

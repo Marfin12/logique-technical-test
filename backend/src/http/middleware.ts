@@ -46,6 +46,30 @@ export const requestIdMiddleware: RequestHandler = (
   next();
 };
 
+export function requestLogMiddleware(
+  write: (line: string) => void = console.log,
+): RequestHandler {
+  return (request, response, next) => {
+    const startedAt = Date.now();
+    response.on("finish", () => {
+      if (request.path === "/health" || request.path === "/ready") return;
+      write(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: "info",
+          event: "http_request",
+          requestId: response.locals.requestId,
+          method: request.method,
+          path: request.path,
+          status: response.statusCode,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+    });
+    next();
+  };
+}
+
 export function validateBody<T>(parse: (value: unknown) => T): RequestHandler {
   return (request, response, next) => {
     try {

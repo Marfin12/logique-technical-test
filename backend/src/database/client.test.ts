@@ -5,9 +5,13 @@ import { connectDatabaseWithRetry, type DatabaseConnection } from "./client.js";
 
 const config: AppConfig = {
   port: 4000,
-  mongoUri: "mongodb://localhost:27017/insurance?replicaSet=rs0",
+  mongoUri:
+    "mongodb://127.0.0.1:27017/insurance?replicaSet=rs0&directConnection=true",
   databaseName: "insurance",
   authSecret: "test-secret-that-is-at-least-32-chars",
+  chatProvider: "local",
+  geminiModel: "gemini-2.5-flash",
+  geminiTimeoutMs: 8000,
 };
 
 describe("MongoDB connection recovery", () => {

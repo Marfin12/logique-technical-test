@@ -3,6 +3,8 @@ services:
     image: mongo:8.0
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -70,6 +72,10 @@ services:
       MONGODB_DB_NAME: insurance
       API_PORT: 4000
       AUTH_SECRET: ${AUTH_SECRET:-}
+      CHAT_PROVIDER: ${CHAT_PROVIDER:-local}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-8000}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -106,7 +112,7 @@ services:
 networks:
   edge:
   internal:
-    internal: true
+    internal: false
 
 volumes:
   mongo-data:

@@ -60,14 +60,22 @@ export async function seedTestAccounts(db: Db): Promise<void> {
       saltByte: 3,
     },
   ];
+  const seededIds = new Map<string, ObjectId>();
 
   for (const account of accounts) {
     const passwordHash = await hashPassword(
       account.password,
       Buffer.alloc(16, account.saltByte),
     );
+    const existingAccount = await db
+      .collection("users")
+      .findOne({ normalizedEmail: account.email }, { projection: { _id: 1 } });
+    const accountId =
+      existingAccount?._id instanceof ObjectId
+        ? existingAccount._id
+        : account._id;
     await db.collection("users").updateOne(
-      { _id: account._id },
+      { _id: accountId },
       {
         $set: {
           normalizedEmail: account.email,
@@ -80,13 +88,18 @@ export async function seedTestAccounts(db: Db): Promise<void> {
       },
       { upsert: true },
     );
+    seededIds.set(account.email, accountId);
   }
 
+  const newUserId = seededIds.get(TEST_ACCOUNT_CREDENTIALS.newUser.email)!;
+  const profiledUserId = seededIds.get(
+    TEST_ACCOUNT_CREDENTIALS.profiledUser.email,
+  )!;
   await db.collection("masterProfiles").deleteOne({
-    userId: TEST_ACCOUNT_IDS.newUser,
+    userId: newUserId,
   });
   await db.collection("masterProfiles").updateOne(
-    { userId: TEST_ACCOUNT_IDS.profiledUser },
+    { userId: profiledUserId },
     {
       $set: {
         age: 35,

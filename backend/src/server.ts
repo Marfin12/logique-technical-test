@@ -17,6 +17,12 @@ import { ApplicationRepository } from "./database/application-repository.js";
 import { IdempotencyRepository } from "./database/idempotency-repository.js";
 import { ApplicationService } from "./services/application-service.js";
 import { AdminReviewService } from "./services/admin-review-service.js";
+import {
+  ChatService,
+  FallbackChatProvider,
+  GeminiProvider,
+  LocalKnowledgeProvider,
+} from "./services/chat-service.js";
 
 const config = loadConfig();
 let connection: DatabaseConnection | undefined;
@@ -41,6 +47,28 @@ async function start() {
     const idempotency = new IdempotencyRepository(connection.db);
     const productService = new ProductService(profiles, products);
     const sessionCodec = new SessionCodec(config.authSecret);
+    const localChatProvider = new LocalKnowledgeProvider();
+    const chatProvider =
+      config.chatProvider === "gemini" && config.geminiApiKey
+        ? new FallbackChatProvider(
+            new GeminiProvider(
+              config.geminiApiKey,
+              config.geminiModel,
+              config.geminiTimeoutMs,
+              fetch,
+              (event) =>
+                console.log(
+                  JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    level: event.outcome === "error" ? "error" : "info",
+                    event: "chat_provider_request",
+                    ...event,
+                  }),
+                ),
+            ),
+            localChatProvider,
+          )
+        : localChatProvider;
     const app = createApp({
       readiness: () =>
         connection!.db.command({ ping: 1 }).then(() => undefined),
@@ -73,10 +101,25 @@ async function start() {
         ),
         sessionCodec,
       },
+      phase7: {
+        chatService: new ChatService(applications, chatProvider),
+        sessionCodec,
+      },
     });
 
     server = app.listen(config.port, "0.0.0.0", () => {
-      console.log(`Insurance API listening on port ${config.port}.`);
+      console.log(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: "info",
+          event: "api_started",
+          port: config.port,
+          chatProvider: config.chatProvider,
+          ...(config.chatProvider === "gemini"
+            ? { chatModel: config.geminiModel }
+            : {}),
+        }),
+      );
     });
     server.on("error", (error) => {
       console.error("The API server encountered an error.", error);

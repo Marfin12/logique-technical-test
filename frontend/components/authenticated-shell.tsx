@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { AccountDto } from "@insurance/contracts";
 
 import { LogoutButton } from "./logout-button";
+import { ChatWidget } from "./chat-widget";
 
 interface ShellProps {
   account: AccountDto;
@@ -52,6 +53,7 @@ export function AuthenticatedShell({ account, area, children }: ShellProps) {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+      {area === "user" ? <ChatWidget /> : null}
     </div>
   );
 }
