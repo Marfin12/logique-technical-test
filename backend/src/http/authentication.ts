@@ -84,22 +84,36 @@ export const sameOrigin: RequestHandler = (request, _response, next) => {
   next();
 };
 
+export interface LoginRateLimiter extends RequestHandler {
+  recordFailure(request: Parameters<RequestHandler>[0]): boolean;
+  reset(request: Parameters<RequestHandler>[0]): void;
+}
+
 export function loginRateLimit(options: {
   limit: number;
   windowMs: number;
   now?: () => number;
   message?: string;
-}): RequestHandler {
+}): LoginRateLimiter {
   const attempts = new Map<string, { count: number; resetsAt: number }>();
   const now = options.now ?? (() => Date.now());
-  return (request, _response, next) => {
-    const key = request.ip || "unknown";
-    const currentTime = now();
-    if (attempts.size >= 10_000) {
-      for (const [attemptKey, attempt] of attempts) {
-        if (attempt.resetsAt <= currentTime) attempts.delete(attemptKey);
-      }
+  const keyFor = (request: Parameters<RequestHandler>[0]) =>
+    request.ip || "unknown";
+  const cleanup = (currentTime: number) => {
+    if (attempts.size < 10_000) return;
+    for (const [attemptKey, attempt] of attempts) {
+      if (attempt.resetsAt <= currentTime) attempts.delete(attemptKey);
     }
+  };
+  const limiter = ((request, _response, next) => {
+    const currentTime = now();
+    cleanup(currentTime);
+    next();
+  }) as LoginRateLimiter;
+  limiter.recordFailure = (request) => {
+    const currentTime = now();
+    cleanup(currentTime);
+    const key = keyFor(request);
     const current = attempts.get(key);
     const state =
       !current || current.resetsAt <= currentTime
@@ -107,15 +121,10 @@ export function loginRateLimit(options: {
         : current;
     state.count += 1;
     attempts.set(key, state);
-    if (state.count > options.limit) {
-      return next(
-        new AppError(
-          429,
-          "TOO_MANY_REQUESTS",
-          options.message ?? "Too many login attempts. Please try again later.",
-        ),
-      );
-    }
-    next();
+    return state.count > options.limit;
   };
+  limiter.reset = (request) => {
+    attempts.delete(keyFor(request));
+  };
+  return limiter;
 }

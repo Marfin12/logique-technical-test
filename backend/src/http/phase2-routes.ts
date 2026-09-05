@@ -7,6 +7,7 @@ import type {
 } from "@insurance/contracts";
 
 import type { SessionCodec } from "../domain/session.js";
+import { AppError, UnauthorizedError } from "../domain/errors.js";
 import type { AuthService } from "../services/auth-service.js";
 import {
   parseLoginInput,
@@ -32,7 +33,7 @@ export interface Phase2Dependencies {
 export function phase2Router(dependencies: Phase2Dependencies) {
   const router = Router();
   const requireAuthentication = authentication(dependencies.sessionCodec);
-  const authRateLimit = loginRateLimit({
+  const loginLimiter = loginRateLimit({
     limit: 10,
     windowMs: 15 * 60 * 1000,
   });
@@ -40,7 +41,6 @@ export function phase2Router(dependencies: Phase2Dependencies) {
   router.post(
     "/auth/register",
     sameOrigin,
-    authRateLimit,
     asyncHandler(async (request, response) => {
       const result = await dependencies.authService.register(
         parseRegisterInput(request.body),
@@ -57,11 +57,27 @@ export function phase2Router(dependencies: Phase2Dependencies) {
   router.post(
     "/auth/login",
     sameOrigin,
-    authRateLimit,
+    loginLimiter,
     asyncHandler(async (request, response) => {
-      const result = await dependencies.authService.login(
-        parseLoginInput(request.body),
-      );
+      let result;
+      try {
+        result = await dependencies.authService.login(
+          parseLoginInput(request.body),
+        );
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          const limited = loginLimiter.recordFailure(request);
+          if (limited) {
+            throw new AppError(
+              429,
+              "TOO_MANY_REQUESTS",
+              "Too many login attempts. Please try again later.",
+            );
+          }
+        }
+        throw error;
+      }
+      loginLimiter.reset(request);
       const token = dependencies.sessionCodec.issue({
         id: result.account.id,
         role: result.account.role,

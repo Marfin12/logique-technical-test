@@ -191,6 +191,51 @@ describe("Phase 2 authentication and profile API", () => {
     expect(unknown.body.error.message).toBe(wrong.body.error.message);
   });
 
+  it("counts only failed credentials and resets after a successful login", async () => {
+    const { app } = testContext();
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const failed = await request(app)
+        .post("/api/v1/auth/login")
+        .send({
+          email: "new@example.test",
+          password: "WrongPassword123!",
+        })
+        .set("x-forwarded-for", "203.0.113.10");
+      expect(failed.status).toBe(401);
+    }
+    expect(
+      (
+        await request(app)
+          .post("/api/v1/auth/login")
+          .set("x-forwarded-for", "203.0.113.10")
+          .send({
+            email: "new@example.test",
+            password: "WrongPassword123!",
+          })
+      ).status,
+    ).toBe(429);
+
+    const successful = await request(app)
+      .post("/api/v1/auth/login")
+      .set("x-forwarded-for", "203.0.113.10")
+      .send({
+        email: "new@example.test",
+        password: "ValidPassword123!",
+      });
+    expect(successful.status).toBe(200);
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const failed = await request(app)
+        .post("/api/v1/auth/login")
+        .set("x-forwarded-for", "203.0.113.10")
+        .send({
+          email: "new@example.test",
+          password: "WrongPassword123!",
+        });
+      expect(failed.status).toBe(401);
+    }
+  });
+
   it("persists and returns only the authenticated user's valid profile", async () => {
     const { app, profiles } = testContext();
     const agent = request.agent(app);
