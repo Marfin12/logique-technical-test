@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { ChatMessageResponseDto, ErrorDto } from "@insurance/contracts";
+import { FiMessageCircle, FiX } from "react-icons/fi";
 
 interface Message {
   role: "user" | "assistant";
@@ -145,15 +146,15 @@ export function ChatWidget() {
           </form>
         </section>
       ) : null}
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls="insurance-assistant"
-        aria-label="Open insurance assistant"
-        onClick={() => setOpen((value) => !value)}
-        className="ml-auto block rounded-full bg-blue-800 px-5 py-3 font-semibold text-white shadow-lg"
-      >
-        {open ? "Close" : "Chat"}
+      <button 
+        type="button" 
+        aria-expanded={open} 
+        aria-controls="insurance-assistant" 
+        aria-label={open ? "Close insurance assistant" : "Open insurance assistant"} 
+        onClick={() => setOpen((value) => !value)} 
+        className="ml-auto flex items-center gap-2 rounded-full bg-blue-800 px-5 py-3 font-semibold text-white shadow-lg transition hover:bg-blue-900" > 
+        {open ? 
+          ( <> <FiX className="h-5 w-5" /> Close </> ) : ( <> <FiMessageCircle className="h-5 w-5" /> Ask? </> )} 
       </button>
     </div>
   );

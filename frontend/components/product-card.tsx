@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { FaArrowRight } from "react-icons/fa6";
 
 import type { ProductCatalogItemDto } from "@insurance/contracts";
 
@@ -58,7 +59,9 @@ export function ProductCard({ product }: { product: ProductCatalogItemDto }) {
           href={`/products/${product.id}`}
           className="mt-5 rounded-lg bg-blue-700 px-4 py-3 text-center font-semibold text-white hover:bg-blue-800"
         >
-          View details
+          <span className="inline-flex items-center justify-center gap-2">
+            View details <FaArrowRight aria-hidden="true" />
+          </span>
         </Link>
       </div>
     </article>

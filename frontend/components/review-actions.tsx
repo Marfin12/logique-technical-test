@@ -1,14 +1,20 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+
+import { LoadingIndicator } from "./loading-indicator";
 export function ReviewActions({ applicationId }: { applicationId: string }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    "approve" | "reject" | null
+  >(null);
+  const busy = pendingAction !== null;
   const [error, setError] = useState("");
   async function act(action: "approve" | "reject") {
     if (action === "reject" && !reason.trim()) return;
-    setBusy(true);
+    setPendingAction(action);
     setError("");
     try {
       const response = await fetch(
@@ -36,7 +42,7 @@ export function ReviewActions({ applicationId }: { applicationId: string }) {
     } catch {
       setError("Review action failed. Check your connection.");
     } finally {
-      setBusy(false);
+      setPendingAction(null);
     }
   }
   return (
@@ -46,18 +52,32 @@ export function ReviewActions({ applicationId }: { applicationId: string }) {
         <button
           type="button"
           disabled={busy}
+          aria-busy={pendingAction === "approve"}
           onClick={() => void act("approve")}
-          className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-50"
         >
-          Approve
+          {pendingAction === "approve" ? (
+            <LoadingIndicator label="Approving…" />
+          ) : (
+            <>
+              <FaCheck aria-hidden="true" /> Approve
+            </>
+          )}
         </button>
         <button
           type="button"
           disabled={busy || !reason.trim()}
+          aria-busy={pendingAction === "reject"}
           onClick={() => void act("reject")}
-          className="rounded-lg bg-red-700 px-4 py-2 font-semibold text-white disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 font-semibold text-white disabled:opacity-50"
         >
-          Reject
+          {pendingAction === "reject" ? (
+            <LoadingIndicator label="Rejecting…" />
+          ) : (
+            <>
+              <FaXmark aria-hidden="true" /> Reject
+            </>
+          )}
         </button>
       </div>
       <label className="mt-4 block text-sm font-semibold text-slate-700">

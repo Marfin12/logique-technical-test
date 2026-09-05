@@ -2,8 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { FaRightToBracket, FaUserPlus } from "react-icons/fa6";
 
 import type { ErrorDto, LoginResponseDto } from "@insurance/contracts";
+
+import { LoadingIndicator } from "./loading-indicator";
 
 export function LoginForm() {
   const router = useRouter();
@@ -151,15 +154,22 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
+        aria-busy={pending}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
       >
-        {pending
-          ? mode === "register"
-            ? "Creating account…"
-            : "Signing in…"
-          : mode === "register"
-            ? "Create user account"
-            : "Sign in"}
+        {pending ? (
+          <LoadingIndicator
+            label={mode === "register" ? "Creating account…" : "Signing in…"}
+          />
+        ) : mode === "register" ? (
+          <>
+            <FaUserPlus aria-hidden="true" /> Create user account
+          </>
+        ) : (
+          <>
+            <FaRightToBracket aria-hidden="true" /> Sign in
+          </>
+        )}
       </button>
       <p className="text-center text-sm text-slate-600">
         {mode === "register" ? "Already registered?" : "New customer?"}{" "}

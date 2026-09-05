@@ -1,6 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FaMagnifyingGlass } from "react-icons/fa6";
+
+import { LoadingIndicator } from "./loading-indicator";
 export function StartReviewButton({
   applicationId,
 }: {
@@ -35,10 +38,17 @@ export function StartReviewButton({
       <button
         type="button"
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void start()}
-        className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
       >
-        {busy ? "Starting…" : "Start Review"}
+        {busy ? (
+          <LoadingIndicator label="Starting review…" />
+        ) : (
+          <>
+            <FaMagnifyingGlass aria-hidden="true" /> Start Review
+          </>
+        )}
       </button>
       {error ? (
         <p className="mt-1 text-xs text-red-700" role="alert">

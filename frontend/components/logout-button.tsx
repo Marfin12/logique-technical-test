@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FaRightFromBracket } from "react-icons/fa6";
+
+import { LoadingIndicator } from "./loading-indicator";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -29,9 +32,17 @@ export function LogoutButton() {
         type="button"
         onClick={logout}
         disabled={pending}
-        className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+        aria-busy={pending}
+        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
       >
-        {pending ? "Signing out…" : "Sign out"}
+        {pending ? (
+          <LoadingIndicator label="Signing out…" />
+        ) : (
+          <>
+            <FaRightFromBracket aria-hidden="true" />
+            <span className="hidden sm:inline">Sign out</span>
+          </>
+        )}
       </button>
       {error ? (
         <p role="alert" className="text-xs text-red-700">

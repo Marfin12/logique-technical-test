@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { FaFloppyDisk } from "react-icons/fa6";
 
 import {
   PAYMENT_FREQUENCIES,
@@ -19,6 +20,7 @@ import {
   validateProfileForm,
   type ProfileFormValues,
 } from "../lib/profile-form";
+import { LoadingIndicator } from "./loading-indicator";
 
 interface ProfileFormProps {
   initialProfile: MasterProfileDto | null;
@@ -220,13 +222,17 @@ export function ProfileForm({ initialProfile, setup }: ProfileFormProps) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
+          aria-busy={pending}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
         >
-          {pending
-            ? "Saving…"
-            : setup
-              ? "Save and view products"
-              : "Save profile"}
+          {pending ? (
+            <LoadingIndicator label="Saving profile…" />
+          ) : (
+            <>
+              <FaFloppyDisk aria-hidden="true" />
+              {setup ? "Save and view products" : "Save profile"}
+            </>
+          )}
         </button>
       </div>
     </form>
