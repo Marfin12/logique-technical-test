@@ -11,7 +11,7 @@ describe("environment configuration", () => {
         "mongodb://127.0.0.1:27017/insurance?replicaSet=rs0&directConnection=true",
       databaseName: "insurance",
       chatProvider: "local",
-      geminiModel: "gemini-2.5-flash",
+      geminiModel: "gemini-3.6-flash",
       geminiTimeoutMs: 8000,
     });
     expect(config.authSecret.length).toBeGreaterThanOrEqual(32);
@@ -44,13 +44,13 @@ describe("environment configuration", () => {
       loadConfig({
         CHAT_PROVIDER: "gemini",
         GEMINI_API_KEY: "test-api-key",
-        GEMINI_MODEL: "gemini-2.5-flash",
+        GEMINI_MODEL: "gemini-3.6-flash",
         GEMINI_TIMEOUT_MS: "5000",
       }),
     ).toMatchObject({
       chatProvider: "gemini",
       geminiApiKey: "test-api-key",
-      geminiModel: "gemini-2.5-flash",
+      geminiModel: "gemini-3.6-flash",
       geminiTimeoutMs: 5000,
     });
   });

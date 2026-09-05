@@ -55,7 +55,6 @@ async function start() {
               config.geminiApiKey,
               config.geminiModel,
               config.geminiTimeoutMs,
-              fetch,
               (event) =>
                 console.log(
                   JSON.stringify({

@@ -25,7 +25,7 @@ export interface AppDependencies {
 }
 
 export function createApp(dependencies: AppDependencies) {
-  console.log("initiating")
+  console.log("initiating 2")
   const app = express();
   app.disable("x-powered-by");
   app.use(helmet({ strictTransportSecurity: false }));

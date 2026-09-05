@@ -10,7 +10,7 @@ const config: AppConfig = {
   databaseName: "insurance",
   authSecret: "test-secret-that-is-at-least-32-chars",
   chatProvider: "local",
-  geminiModel: "gemini-2.5-flash",
+  geminiModel: "gemini-3.6-flash",
   geminiTimeoutMs: 8000,
 };
 

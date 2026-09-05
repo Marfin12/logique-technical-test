@@ -37,7 +37,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (chatProvider === "gemini" && !geminiApiKey) {
     throw new Error("GEMINI_API_KEY is required when CHAT_PROVIDER=gemini");
   }
-  const geminiModel = env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const geminiModel = env.GEMINI_MODEL?.trim() || "gemini-3.6-flash";
   if (!/^[a-zA-Z0-9._-]+$/.test(geminiModel)) {
     throw new Error("GEMINI_MODEL contains unsupported characters");
   }

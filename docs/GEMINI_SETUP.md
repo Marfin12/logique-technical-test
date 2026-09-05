@@ -10,7 +10,7 @@ The chatbot defaults to the local approved knowledge provider. To enable Google 
    ```dotenv
    CHAT_PROVIDER=gemini
    GEMINI_API_KEY=replace-with-your-real-key
-   GEMINI_MODEL=gemini-2.5-flash
+   GEMINI_MODEL=gemini-3.6-flash
    GEMINI_TIMEOUT_MS=8000
    ```
 
