@@ -1,5 +1,8 @@
 # Simple Insurance Application
 
+**Developed by:** Marfin Fadhilah
+**Purpose:** This application was developed specifically for a technical test. It is being made publicly available on a temporary basis to provide a simple and accessible way for reviewers to evaluate the project.
+
 Phase 0 provides a testable technical foundation:
 
 - npm workspaces and shared TypeScript contracts;
