@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { FaRightToBracket, FaUserPlus } from "react-icons/fa6";
+import { FaRightToBracket, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 import type { ErrorDto, LoginResponseDto } from "@insurance/contracts";
 
@@ -13,6 +13,7 @@ export function LoginForm() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,16 +133,26 @@ export function LoginForm() {
         >
           Password
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete={
-            mode === "register" ? "new-password" : "current-password"
-          }
-          required
-          className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-950"
-        />
+        <div className="relative mt-2">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"} // Dinamis berdasarkan state
+              autoComplete={
+                mode === "register" ? "new-password" : "current-password"
+              }
+              required
+              className="w-full rounded-lg border border-slate-300 pl-3 pr-10 py-2.5 text-slate-950"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-700"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+            </button>
+          </div>
       </div>
       {error ? (
         <p
