@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
 
 import { LoginForm } from "../../components/login-form";
 import { Panel } from "../../components/panel";
@@ -14,6 +15,14 @@ export default async function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center px-6 py-12">
       <Panel className="max-w-md p-7 sm:p-10">
+        <Image
+          src="/images/logo.png"
+          alt="Simple Insurance"
+          width={104}
+          height={104}
+          className="mx-auto mb-5 h-24 w-24 rounded-2xl"
+          priority
+        />
         <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
           Simple Insurance
         </p>

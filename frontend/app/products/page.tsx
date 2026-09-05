@@ -22,7 +22,7 @@ export default async function ProductsPage() {
         </h1>
         <p className="mt-3 text-slate-600">
           Premiums are calculated by the server from your saved profile and the
-          current test product configuration.
+          current demo product configuration.
         </p>
         {items.length ? (
           <div className="mt-8 grid gap-6 lg:grid-cols-2">

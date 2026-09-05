@@ -7,8 +7,10 @@ import { hashPassword } from "../domain/credentials.js";
 export const TEST_PRODUCT_IDS = {
   life: new ObjectId("650000000000000000000001"),
   health: new ObjectId("650000000000000000000002"),
+  travel: new ObjectId("650000000000000000000003"),
   lifeVersion: new ObjectId("650000000000000000000101"),
   healthVersion: new ObjectId("650000000000000000000102"),
+  travelVersion: new ObjectId("650000000000000000000103"),
 } as const;
 
 export const TEST_ACCOUNT_IDS = {
@@ -131,6 +133,11 @@ export async function seedTestProducts(db: Db): Promise<void> {
       name: "Simple Health",
       active: true,
     },
+    {
+      _id: TEST_PRODUCT_IDS.travel,
+      name: "Simple Travel",
+      active: true,
+    },
   ];
   for (const product of products) {
     const { _id, ...fields } = product;
@@ -237,6 +244,53 @@ export async function seedTestProducts(db: Db): Promise<void> {
           },
         ],
       },
+    },
+    {
+      _id: TEST_PRODUCT_IDS.travelVersion,
+      productId: TEST_PRODUCT_IDS.travel,
+      version: 1,
+      insuranceTypes: ["INDIVIDUAL", "FAMILY"],
+      description:
+        "Demo travel protection offered for individual and family journeys.",
+      coverage: {
+        currency: "IDR",
+        summary: "Illustrative travel emergency and disruption coverage",
+      },
+      benefits: [
+        "Illustrative emergency medical assistance",
+        "Illustrative trip disruption benefit",
+      ],
+      limitations: ["Demo configuration—not approved policy wording"],
+      eligibilityConfig: {
+        minimumAge: 18,
+        maximumAge: 70,
+        minimumSumAssured: Decimal128.fromString("10000000.00"),
+        maximumSumAssured: Decimal128.fromString("1000000000.00"),
+        currency: "IDR",
+        paymentFrequencies: [
+          "MONTHLY",
+          "QUARTERLY",
+          "SEMI_ANNUALLY",
+          "ANNUALLY",
+        ],
+        paymentMethods: ["RECURRING", "ONE_TIME"],
+      },
+      ratingConfig: {
+        ratePerThousand: Decimal128.fromString("1.20"),
+        frequencyFactors: {
+          MONTHLY: Decimal128.fromString("0.09"),
+          QUARTERLY: Decimal128.fromString("0.26"),
+          SEMI_ANNUALLY: Decimal128.fromString("0.52"),
+          ANNUALLY: Decimal128.fromString("0.95"),
+        },
+        paymentMethodFactors: {
+          RECURRING: Decimal128.fromString("1.00"),
+          ONE_TIME: Decimal128.fromString("0.98"),
+        },
+        roundingScale: 2,
+        version: 1,
+      },
+      supplementalSchema: { version: 1, fields: [] },
     },
   ];
   for (const version of versions) {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import type { AccountDto } from "@insurance/contracts";
@@ -17,16 +18,26 @@ export function AuthenticatedShell({ account, area, children }: ShellProps) {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <Link
-              href={area === "admin" ? "/admin/applications" : "/products"}
-              className="text-lg font-bold text-blue-800"
-            >
-              Simple Insurance
-            </Link>
-            <p className="text-xs text-slate-500">
-              {area === "admin" ? "Administration" : "Customer portal"}
-            </p>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/icons/icon-192.png"
+              alt=""
+              width={44}
+              height={44}
+              className="h-11 w-11 rounded-xl"
+              priority
+            />
+            <div>
+              <Link
+                href={area === "admin" ? "/admin/applications" : "/products"}
+                className="text-lg font-bold text-blue-800"
+              >
+                Simple Insurance
+              </Link>
+              <p className="text-xs text-slate-500">
+                {area === "admin" ? "Administration" : "Customer portal"}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-slate-600 sm:inline">

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import { AuthenticatedShell } from "../../../components/authenticated-shell";
 import { Panel } from "../../../components/panel";
 import { PAYMENT_FREQUENCY_LABELS } from "../../../lib/payment-labels";
+import { productHero, productTypeVisual } from "../../../lib/product-assets";
 import {
   displayProductName,
   formatInsuranceType,
@@ -22,6 +24,8 @@ export default async function ProductDetailPage({
   const account = await requireUser();
   const { productId } = await params;
   const result = await productDetail(productId);
+  const hero =
+    result.state === "available" ? productHero(result.product.name) : undefined;
 
   return (
     <AuthenticatedShell account={account} area="user">
@@ -48,6 +52,18 @@ export default async function ProductDetailPage({
       ) : (
         <article className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <Panel className="p-6 sm:p-9">
+            {hero ? (
+              <div className="relative mb-8 aspect-video overflow-hidden rounded-xl bg-slate-100">
+                <Image
+                  src={hero.src}
+                  alt={hero.alt}
+                  fill
+                  sizes="(min-width: 1024px) 65vw, 100vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
@@ -71,15 +87,31 @@ export default async function ProductDetailPage({
               <h2 className="text-lg font-bold text-slate-950">
                 Insurance types
               </h2>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {result.product.insuranceTypes.map((type) => (
-                  <li
-                    key={type}
-                    className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800"
-                  >
-                    {formatInsuranceType(type)}
-                  </li>
-                ))}
+              <ul className="mt-3 grid gap-4 sm:grid-cols-2">
+                {result.product.insuranceTypes.map((type) => {
+                  const visual = productTypeVisual(result.product.name, type);
+                  return (
+                    <li
+                      key={type}
+                      className="overflow-hidden rounded-xl border border-blue-100 bg-blue-50"
+                    >
+                      {visual ? (
+                        <div className="relative aspect-video bg-slate-100">
+                          <Image
+                            src={visual.src}
+                            alt={visual.alt}
+                            fill
+                            sizes="(min-width: 640px) 40vw, 100vw"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : null}
+                      <p className="px-3 py-2 text-sm font-semibold text-blue-800">
+                        {formatInsuranceType(type)}
+                      </p>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
 
