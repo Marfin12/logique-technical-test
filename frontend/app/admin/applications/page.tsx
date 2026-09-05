@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AuthenticatedShell } from "../../../components/authenticated-shell";
 import { Panel } from "../../../components/panel";
 import { StartReviewButton } from "../../../components/start-review-button";
+import { formatWibDateTime } from "../../../lib/date-time";
 import { PAYMENT_FREQUENCY_LABELS } from "../../../lib/payment-labels";
 import { displayProductName } from "../../../lib/product-display";
 import { adminApplications } from "../../../lib/server-admin";
@@ -50,9 +51,7 @@ export default async function AdminApplicationsPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  {item.submittedAt
-                    ? new Date(item.submittedAt).toLocaleString()
-                    : "—"}
+                  {item.submittedAt ? formatWibDateTime(item.submittedAt) : "—"}
                 </td>
                 <td className="px-4 py-3">
                   {item.selectedInsuranceType ?? "—"}
@@ -74,13 +73,12 @@ export default async function AdminApplicationsPage() {
                   <div className="flex items-start gap-2">
                     {item.status === "SUBMITTED" ? (
                       <StartReviewButton applicationId={item.id} />
-                    ) : null}
-                    <Link
+                    ) : <Link
                       href={`/admin/applications/${item.id}`}
                       className="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700"
                     >
                       View
-                    </Link>
+                    </Link>}
                   </div>
                 </td>
               </tr>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AuthenticatedShell } from "../../../../components/authenticated-shell";
 import { Panel } from "../../../../components/panel";
 import { ReviewActions } from "../../../../components/review-actions";
+import { formatWibDateTime } from "../../../../lib/date-time";
 import { adminApplication } from "../../../../lib/server-admin";
 import { requireAdmin } from "../../../../lib/server-auth";
 export const dynamic = "force-dynamic";
@@ -44,9 +45,7 @@ export default async function AdminApplicationPage({
                 Applied
               </dt>
               <dd>
-                {app.submittedAt
-                  ? new Date(app.submittedAt).toLocaleString()
-                  : "—"}
+                {app.submittedAt ? formatWibDateTime(app.submittedAt) : "—"}
               </dd>
             </div>
           </dl>
@@ -78,7 +77,7 @@ export default async function AdminApplicationPage({
                   {event.toStatus.replaceAll("_", " ")}
                 </p>
                 <p className="text-xs text-slate-500">
-                  {new Date(event.createdAt).toLocaleString()}
+                  {formatWibDateTime(event.createdAt)}
                 </p>
                 {event.reason ? (
                   <p className="text-sm text-slate-600">{event.reason}</p>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthenticatedShell } from "../../components/authenticated-shell";
 import { Panel } from "../../components/panel";
+import { formatWibDateTime } from "../../lib/date-time";
 import { displayProductName } from "../../lib/product-display";
 import { requireUser } from "../../lib/server-auth";
 import { applicationList } from "../../lib/server-applications";
@@ -27,7 +28,7 @@ export default async function ApplicationsPage() {
                 {item.status}
               </span>
               <p className="mt-2 text-sm text-slate-500">
-                Updated {new Date(item.updatedAt).toLocaleString()}
+                Updated {formatWibDateTime(item.updatedAt)}
               </p>
             </Panel>
           ))

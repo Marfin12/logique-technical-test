@@ -1,4 +1,5 @@
 import type { ApplicationDto } from "@insurance/contracts";
+import { formatWibDateTime } from "../lib/date-time";
 import { PAYMENT_FREQUENCY_LABELS } from "../lib/payment-labels";
 import {
   displayProductName,
@@ -152,7 +153,7 @@ export function ApplicationProgress({
           {application.submittedAt ? (
             <div>
               <dt className="text-xs uppercase text-slate-500">Submitted</dt>
-              <dd>{new Date(application.submittedAt).toLocaleString()}</dd>
+              <dd>{formatWibDateTime(application.submittedAt)}</dd>
             </div>
           ) : null}
           {application.reviewStartedAt ? (
@@ -160,19 +161,19 @@ export function ApplicationProgress({
               <dt className="text-xs uppercase text-slate-500">
                 Review started
               </dt>
-              <dd>{new Date(application.reviewStartedAt).toLocaleString()}</dd>
+              <dd>{formatWibDateTime(application.reviewStartedAt)}</dd>
             </div>
           ) : null}
           {application.approvedAt ? (
             <div>
               <dt className="text-xs uppercase text-slate-500">Approved</dt>
-              <dd>{new Date(application.approvedAt).toLocaleString()}</dd>
+              <dd>{formatWibDateTime(application.approvedAt)}</dd>
             </div>
           ) : null}
           {application.rejectedAt ? (
             <div>
               <dt className="text-xs uppercase text-slate-500">Rejected</dt>
-              <dd>{new Date(application.rejectedAt).toLocaleString()}</dd>
+              <dd>{formatWibDateTime(application.rejectedAt)}</dd>
             </div>
           ) : null}
         </dl>

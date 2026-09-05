@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+import { ApplicationProgress } from "../../../components/application-progress";
 import { AuthenticatedShell } from "../../../components/authenticated-shell";
 import { Panel } from "../../../components/panel";
-import { ProductApplicationForm } from "../../../components/product-application-form";
-import { ApplicationProgress } from "../../../components/application-progress";
-import { requireUser } from "../../../lib/server-auth";
+import { ProductDetailView } from "../../../components/product-detail-view";
 import { applicationDetail } from "../../../lib/server-applications";
+import { requireUser } from "../../../lib/server-auth";
 import { productDetail } from "../../../lib/server-products";
+
 export const dynamic = "force-dynamic";
+
 export default async function ApplicationPage({
   params,
 }: {
@@ -17,9 +20,24 @@ export default async function ApplicationPage({
   const { applicationId } = await params;
   const result = await applicationDetail(applicationId);
   if (!result) notFound();
-  const app = result.application;
-  const product =
-    app.status === "DRAFT" ? await productDetail(app.productId) : null;
+  const application = result.application;
+
+  if (application.status === "DRAFT") {
+    const product = await productDetail(application.productId);
+    if (product.state === "available") {
+      return (
+        <AuthenticatedShell account={account} area="user">
+          <ProductDetailView
+            product={product.product}
+            initialApplication={application}
+            backHref="/applications"
+            backLabel="My applications"
+          />
+        </AuthenticatedShell>
+      );
+    }
+  }
+
   return (
     <AuthenticatedShell account={account} area="user">
       <Link
@@ -29,16 +47,11 @@ export default async function ApplicationPage({
         ← My applications
       </Link>
       <Panel className="mt-6 p-6">
-        <h1 className="text-2xl font-bold">Application {app.id}</h1>
-        <p className="mt-2 text-slate-600">Status: {app.status}</p>
-        {app.status === "DRAFT" && product?.state === "available" ? (
-          <ProductApplicationForm
-            product={product.product}
-            initialApplication={app}
-          />
-        ) : (
-          <ApplicationProgress application={app} />
-        )}
+        <h1 className="text-2xl font-bold">Application {application.id}</h1>
+        <p className="mt-2 text-slate-600">
+          Status: {application.status.replaceAll("_", " ")}
+        </p>
+        <ApplicationProgress application={application} />
       </Panel>
     </AuthenticatedShell>
   );

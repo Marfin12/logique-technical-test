@@ -32,10 +32,6 @@ export default async function LoginPage() {
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Users and administrators use the same secure login.
         </p>
-        <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-          Local demo over HTTP. Do not use real personal, health, financial, or
-          policy information on an untrusted network.
-        </p>
         <LoginForm />
       </Panel>
     </main>
