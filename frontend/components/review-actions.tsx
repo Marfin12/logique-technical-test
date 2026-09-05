@@ -44,6 +44,7 @@ export function ReviewActions({ applicationId }: { applicationId: string }) {
       <h2 className="font-bold text-slate-950">Decision</h2>
       <div className="mt-3 flex flex-wrap gap-3">
         <button
+          type="button"
           disabled={busy}
           onClick={() => void act("approve")}
           className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-50"
@@ -51,6 +52,7 @@ export function ReviewActions({ applicationId }: { applicationId: string }) {
           Approve
         </button>
         <button
+          type="button"
           disabled={busy || !reason.trim()}
           onClick={() => void act("reject")}
           className="rounded-lg bg-red-700 px-4 py-2 font-semibold text-white disabled:opacity-50"

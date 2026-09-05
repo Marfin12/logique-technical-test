@@ -14,6 +14,7 @@ import { phase3Router, type Phase3Dependencies } from "./http/phase3-routes.js";
 import { phase4Router, type Phase4Dependencies } from "./http/phase4-routes.js";
 import { phase6Router, type Phase6Dependencies } from "./http/phase6-routes.js";
 import { phase7Router, type Phase7Dependencies } from "./http/phase7-routes.js";
+import { operationalMetrics } from "./observability/metrics.js";
 
 export interface AppDependencies {
   readiness(): Promise<void>;
@@ -25,9 +26,10 @@ export interface AppDependencies {
 }
 
 export function createApp(dependencies: AppDependencies) {
-  console.log("initiating 2")
   const app = express();
   app.disable("x-powered-by");
+  // The API accepts traffic only from the single Next.js proxy container.
+  app.set("trust proxy", 1);
   app.use(helmet({ strictTransportSecurity: false }));
   app.use(requestIdMiddleware);
   app.use(requestLogMiddleware());
@@ -49,6 +51,12 @@ export function createApp(dependencies: AppDependencies) {
   app.get("/health", (_request, response) => {
     const body: HealthResponse = { status: "ok", service: "api" };
     response.json(body);
+  });
+
+  // The web proxy does not expose this endpoint; it is available only on the
+  // internal API network for an operational collector.
+  app.get("/internal/metrics", (_request, response) => {
+    response.json(operationalMetrics.snapshot());
   });
 
   app.get(

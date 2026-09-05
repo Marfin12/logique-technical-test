@@ -3,16 +3,22 @@ import Link from "next/link";
 import type { ProductCatalogItemDto } from "@insurance/contracts";
 
 import { PAYMENT_FREQUENCY_LABELS } from "../lib/payment-labels";
-import { formatInsuranceType, formatMoney } from "../lib/product-display";
+import {
+  displayProductName,
+  formatInsuranceType,
+  formatMoney,
+} from "../lib/product-display";
 
 export function ProductCard({ product }: { product: ProductCatalogItemDto }) {
   return (
     <article className="flex h-full flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-xl font-bold text-slate-950">{product.name}</h2>
+        <h2 className="text-xl font-bold text-slate-950">
+          {displayProductName(product.name)}
+        </h2>
         {product.testOnly ? (
           <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
-            Test only
+            Demo
           </span>
         ) : null}
       </div>

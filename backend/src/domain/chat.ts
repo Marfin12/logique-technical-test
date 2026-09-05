@@ -1,10 +1,11 @@
 import { ValidationError } from "./errors.js";
 
 export function parseChatMessage(value: unknown): string {
-  const message =
-    typeof (value as any)?.message === "string"
-      ? (value as any).message.trim()
-      : "";
+  const body =
+    value && typeof value === "object"
+      ? (value as Record<string, unknown>)
+      : {};
+  const message = typeof body.message === "string" ? body.message.trim() : "";
   if (!message || message.length > 500)
     throw new ValidationError(
       "Message must contain between 1 and 500 characters.",

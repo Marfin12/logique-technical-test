@@ -32,32 +32,30 @@ function valid(field: SupplementalFieldDto, value: unknown): boolean {
 export function validateDraftTrigger(
   schema: { fields: SupplementalFieldDto[] },
   insuranceTypes: string[],
-  trigger: any,
+  trigger: unknown,
 ) {
   if (!trigger || typeof trigger !== "object")
     throw new DomainValidationError("A draft trigger is required.");
-  if (trigger.kind === "INSURANCE_TYPE_SELECTED") {
+  const value = trigger as Record<string, unknown>;
+  if (value.kind === "INSURANCE_TYPE_SELECTED") {
     if (
-      typeof trigger.insuranceType !== "string" ||
-      !insuranceTypes.includes(trigger.insuranceType)
+      typeof value.insuranceType !== "string" ||
+      !insuranceTypes.includes(value.insuranceType)
     )
       throw new DomainValidationError(
         "The selected insurance type is not available.",
       );
     return {
-      selectedInsuranceType: trigger.insuranceType,
+      selectedInsuranceType: value.insuranceType,
       supplementalData: {} as Record<string, unknown>,
     };
   }
-  if (trigger.kind === "SUPPLEMENTAL_FIELD_CHANGED") {
-    const field = schema.fields.find((item) => item.key === trigger.fieldKey);
-    if (!field || !valid(field, trigger.value))
+  if (value.kind === "SUPPLEMENTAL_FIELD_CHANGED") {
+    const field = schema.fields.find((item) => item.key === value.fieldKey);
+    if (!field || !valid(field, value.value))
       throw new DomainValidationError("The supplemental value is invalid.");
     return {
-      supplementalData: { [field.key]: trigger.value } as Record<
-        string,
-        unknown
-      >,
+      supplementalData: { [field.key]: value.value } as Record<string, unknown>,
     };
   }
   throw new DomainValidationError("A valid draft trigger is required.");

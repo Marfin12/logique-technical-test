@@ -2,6 +2,7 @@ import { Decimal128, ObjectId } from "mongodb";
 import type { ClientSession } from "mongodb";
 import type {
   ApplicationDto,
+  ApplicationStatus,
   CreateDraftRequestDto,
   DraftUpdateRequestDto,
 } from "@insurance/contracts";
@@ -25,10 +26,11 @@ import {
 import type { ProductService } from "./product-service.js";
 import { runInTransaction } from "../database/transactions.js";
 import type { MongoClient } from "mongodb";
+import type { ApplicationDocument } from "../models/persistence.js";
 
 const oid = (value: string) =>
   ObjectId.isValid(value) ? new ObjectId(value) : null;
-function normalizeSnapshot(value: any): any {
+function normalizeSnapshot(value: unknown): unknown {
   if (value instanceof Decimal128) return value.toString();
   if (value instanceof Date) return value.toISOString();
   if (Array.isArray(value)) return value.map(normalizeSnapshot);
@@ -41,7 +43,23 @@ function normalizeSnapshot(value: any): any {
     );
   return value;
 }
-export const applicationDto = (d: any): ApplicationDto => ({
+
+function snapshotDto(value: unknown): Readonly<Record<string, unknown>> {
+  return normalizeSnapshot(value) as Readonly<Record<string, unknown>>;
+}
+
+function responseApplicationId(value: unknown): ObjectId {
+  if (!value || typeof value !== "object") {
+    throw new ConflictError("The idempotent response is invalid.");
+  }
+  const applicationId = (value as Record<string, unknown>).applicationId;
+  if (typeof applicationId !== "string" || !ObjectId.isValid(applicationId)) {
+    throw new ConflictError("The idempotent response is invalid.");
+  }
+  return new ObjectId(applicationId);
+}
+
+export const applicationDto = (d: ApplicationDocument): ApplicationDto => ({
   id: d._id.toHexString(),
   userId: d.userId.toHexString(),
   productId: d.productId.toHexString(),
@@ -55,13 +73,13 @@ export const applicationDto = (d: any): ApplicationDto => ({
   createdAt: d.createdAt.toISOString(),
   updatedAt: d.updatedAt.toISOString(),
   ...(d.profileSnapshot
-    ? { profileSnapshot: normalizeSnapshot(d.profileSnapshot) }
+    ? { profileSnapshot: snapshotDto(d.profileSnapshot) }
     : {}),
   ...(d.productSnapshot
-    ? { productSnapshot: normalizeSnapshot(d.productSnapshot) }
+    ? { productSnapshot: snapshotDto(d.productSnapshot) }
     : {}),
   ...(d.premiumSnapshot
-    ? { premiumSnapshot: normalizeSnapshot(d.premiumSnapshot) }
+    ? { premiumSnapshot: snapshotDto(d.premiumSnapshot) }
     : {}),
   ...(d.reviewerId ? { reviewerId: d.reviewerId.toHexString() } : {}),
   ...(d.rejectionReason ? { rejectionReason: d.rejectionReason } : {}),
@@ -118,14 +136,12 @@ export class ApplicationService {
           createdAt: this.now(),
           expiresAt: new Date(this.now().getTime() + 86400000),
         },
-        session as any,
+        session,
       );
       if (reserved.reused) {
         const existing = await this.apps.findOwnedById(
           new ObjectId(principal.id),
-          new ObjectId(
-            String((reserved.responseReference as any).applicationId),
-          ),
+          responseApplicationId(reserved.responseReference),
           session,
         );
         if (!existing)
@@ -151,7 +167,7 @@ export class ApplicationService {
     return this.client ? runInTransaction(this.client, command) : command();
   }
 
-  async list(principal: Principal, status?: any) {
+  async list(principal: Principal, status?: ApplicationStatus) {
     requireRole(principal, ["USER"]);
     return this.apps.listForUser({
       userId: new ObjectId(principal.id),
@@ -200,7 +216,7 @@ export class ApplicationService {
           createdAt: this.now(),
           expiresAt: new Date(this.now().getTime() + 86400000),
         },
-        session as any,
+        session,
       );
       if (reserved.reused) {
         const existing = await this.apps.findOwnedById(

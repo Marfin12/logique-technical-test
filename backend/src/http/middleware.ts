@@ -11,6 +11,7 @@ import type {
 import type { ErrorDto } from "@insurance/contracts";
 
 import { AppError, ValidationError } from "../domain/errors.js";
+import { operationalMetrics } from "../observability/metrics.js";
 
 type AsyncRequestHandler = (
   request: Request,
@@ -52,7 +53,13 @@ export function requestLogMiddleware(
   return (request, response, next) => {
     const startedAt = Date.now();
     response.on("finish", () => {
-      if (request.path === "/health" || request.path === "/ready") return;
+      const path = request.originalUrl.split("?", 1)[0] ?? request.path;
+      if (path === "/health" || path === "/ready") return;
+      operationalMetrics.observeRequest(
+        request.method,
+        path,
+        response.statusCode,
+      );
       write(
         JSON.stringify({
           timestamp: new Date().toISOString(),
@@ -60,7 +67,7 @@ export function requestLogMiddleware(
           event: "http_request",
           requestId: response.locals.requestId,
           method: request.method,
-          path: request.path,
+          path,
           status: response.statusCode,
           durationMs: Date.now() - startedAt,
         }),

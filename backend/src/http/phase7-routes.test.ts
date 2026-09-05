@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "../app.js";
 import { SessionCodec } from "../domain/session.js";
 import { ChatService } from "../services/chat-service.js";
+import type { ApplicationRepository } from "../database/application-repository.js";
 const USER = new ObjectId("650000000000000000000202");
 function context() {
   const sessionCodec = new SessionCodec("x".repeat(32));
@@ -13,7 +14,12 @@ function context() {
   };
   const app = createApp({
     readiness: async () => undefined,
-    phase7: { chatService: new ChatService(applications as any), sessionCodec },
+    phase7: {
+      chatService: new ChatService(
+        applications as unknown as ApplicationRepository,
+      ),
+      sessionCodec,
+    },
   });
   return { app, sessionCodec };
 }

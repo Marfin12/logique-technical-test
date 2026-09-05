@@ -121,9 +121,14 @@ export function ProfileForm({ initialProfile, setup }: ProfileFormProps) {
           required
           defaultValue={initialProfile?.age}
           aria-invalid={Boolean(errors.age)}
+          aria-describedby={errors.age ? "age-error" : undefined}
           className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5"
         />
-        {fieldError("age")}
+        {errors.age ? (
+          <p id="age-error" className="mt-1 text-sm text-red-700">
+            {errors.age}
+          </p>
+        ) : null}
       </div>
       <div>
         <label
@@ -140,9 +145,16 @@ export function ProfileForm({ initialProfile, setup }: ProfileFormProps) {
           required
           defaultValue={initialProfile?.sumAssured.amount}
           aria-invalid={Boolean(errors["sumAssured.amount"])}
+          aria-describedby={
+            errors["sumAssured.amount"] ? "sum-assured-error" : undefined
+          }
           className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5"
         />
-        {fieldError("sumAssured.amount")}
+        {errors["sumAssured.amount"] ? (
+          <p id="sum-assured-error" className="mt-1 text-sm text-red-700">
+            {errors["sumAssured.amount"]}
+          </p>
+        ) : null}
       </div>
       <div>
         <label

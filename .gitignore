@@ -2,6 +2,7 @@ node_modules/
 dist/
 .next/
 coverage/
+backups/
 .env
 .env.local
 *.log

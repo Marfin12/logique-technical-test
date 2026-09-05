@@ -53,6 +53,10 @@ export function AuthenticatedShell({ account, area, children }: ShellProps) {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+      <footer className="mx-auto max-w-6xl px-6 pb-8 text-xs text-slate-500">
+        Demo configuration over local HTTP. Do not enter real personal,
+        financial, health, or policy data on an untrusted network.
+      </footer>
       {area === "user" ? <ChatWidget /> : null}
     </div>
   );

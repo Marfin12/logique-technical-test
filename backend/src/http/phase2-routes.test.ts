@@ -256,6 +256,14 @@ describe("Phase 2 authentication and profile API", () => {
           .set("host", "insurance.example")
       ).status,
     ).toBe(403);
+
+    expect(
+      (
+        await request(app)
+          .post("/api/v1/auth/logout")
+          .set("sec-fetch-site", "cross-site")
+      ).status,
+    ).toBe(403);
   });
 
   it("clears the session cookie on logout", async () => {

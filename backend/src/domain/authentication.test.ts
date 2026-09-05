@@ -41,4 +41,8 @@ describe("Phase 2 authentication primitives", () => {
       }),
     ).toThrow(/Profile validation/);
   });
+
+  it("uses a short session lifetime for the HTTP-only profile", () => {
+    expect(SESSION_TTL_SECONDS).toBeLessThanOrEqual(30 * 60);
+  });
 });

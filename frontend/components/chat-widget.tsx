@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { ChatMessageResponseDto, ErrorDto } from "@insurance/contracts";
 
@@ -9,6 +9,7 @@ interface Message {
   text: string;
 }
 export function ChatWidget() {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
@@ -18,6 +19,15 @@ export function ChatWidget() {
     },
   ]);
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    inputRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
   async function send(event: FormEvent) {
     event.preventDefault();
     const message = input.trim();
@@ -61,13 +71,17 @@ export function ChatWidget() {
     <div className="fixed bottom-5 right-5 z-50">
       {open ? (
         <section
+          id="insurance-assistant"
           role="dialog"
-          aria-label="Insurance assistant"
+          aria-modal="true"
+          aria-labelledby="assistant-title"
           className="mb-3 flex h-[28rem] w-[min(22rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
         >
           <header className="flex items-center justify-between bg-blue-800 px-4 py-3 text-white">
             <div>
-              <h2 className="font-bold">Insurance assistant</h2>
+              <h2 id="assistant-title" className="font-bold">
+                Insurance assistant
+              </h2>
               <p className="text-xs text-blue-100">
                 Informational and read-only
               </p>
@@ -82,6 +96,7 @@ export function ChatWidget() {
             </button>
           </header>
           <div
+            role="log"
             aria-live="polite"
             className="flex-1 space-y-3 overflow-y-auto p-4"
           >
@@ -112,6 +127,7 @@ export function ChatWidget() {
             </label>
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 id="chat-message"
                 maxLength={500}
                 value={input}
@@ -132,6 +148,7 @@ export function ChatWidget() {
       <button
         type="button"
         aria-expanded={open}
+        aria-controls="insurance-assistant"
         aria-label="Open insurance assistant"
         onClick={() => setOpen((value) => !value)}
         className="ml-auto block rounded-full bg-blue-800 px-5 py-3 font-semibold text-white shadow-lg"

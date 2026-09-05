@@ -11,7 +11,7 @@ try {
   await runMigrations(connection.db);
   await seedTestAccounts(connection.db);
   await seedTestProducts(connection.db);
-  console.log("Seeded deterministic [TEST ONLY] account and product fixtures.");
+  console.log("Seeded deterministic demo account and product fixtures.");
 } catch (error) {
   console.error(
     "Fixture seeding failed.",

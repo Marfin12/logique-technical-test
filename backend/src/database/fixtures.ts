@@ -41,21 +41,21 @@ export async function seedTestAccounts(db: Db): Promise<void> {
     {
       _id: TEST_ACCOUNT_IDS.newUser,
       ...TEST_ACCOUNT_CREDENTIALS.newUser,
-      displayName: "[TEST ONLY] New User",
+      displayName: "Demo New User",
       role: "USER",
       saltByte: 1,
     },
     {
       _id: TEST_ACCOUNT_IDS.profiledUser,
       ...TEST_ACCOUNT_CREDENTIALS.profiledUser,
-      displayName: "[TEST ONLY] Profiled User",
+      displayName: "Demo Profiled User",
       role: "USER",
       saltByte: 2,
     },
     {
       _id: TEST_ACCOUNT_IDS.admin,
       ...TEST_ACCOUNT_CREDENTIALS.admin,
-      displayName: "[TEST ONLY] Admin",
+      displayName: "Demo Administrator",
       role: "ADMIN",
       saltByte: 3,
     },
@@ -123,12 +123,12 @@ export async function seedTestProducts(db: Db): Promise<void> {
   const products = [
     {
       _id: TEST_PRODUCT_IDS.life,
-      name: "[TEST ONLY] Simple Life",
+      name: "Simple Life",
       active: true,
     },
     {
       _id: TEST_PRODUCT_IDS.health,
-      name: "[TEST ONLY] Simple Health",
+      name: "Simple Health",
       active: true,
     },
   ];
@@ -151,13 +151,13 @@ export async function seedTestProducts(db: Db): Promise<void> {
       version: 1,
       insuranceTypes: ["TERM_LIFE"],
       description:
-        "Test term-life fixture with configurable eligibility and rating.",
+        "Demo term-life product with configurable eligibility and rating.",
       coverage: {
         currency: "IDR",
-        summary: "Test coverage up to the selected sum assured",
+        summary: "Illustrative coverage up to the selected sum assured",
       },
-      benefits: ["TEST DATA - not an approved insurance benefit"],
-      limitations: ["TEST DATA - do not use for production decisions"],
+      benefits: ["Illustrative life insurance benefit"],
+      limitations: ["Demo configuration—not approved policy wording"],
       eligibilityConfig: {
         minimumAge: 18,
         maximumAge: 65,
@@ -195,13 +195,13 @@ export async function seedTestProducts(db: Db): Promise<void> {
       version: 1,
       insuranceTypes: ["INDIVIDUAL_HEALTH"],
       description:
-        "Test individual-health fixture with restricted payment choices.",
+        "Demo individual-health product with restricted payment choices.",
       coverage: {
         currency: "IDR",
-        summary: "Test inpatient and outpatient coverage",
+        summary: "Illustrative inpatient and outpatient coverage",
       },
-      benefits: ["TEST DATA - not an approved insurance benefit"],
-      limitations: ["TEST DATA - do not use for production decisions"],
+      benefits: ["Illustrative health insurance benefit"],
+      limitations: ["Demo configuration—not approved policy wording"],
       eligibilityConfig: {
         minimumAge: 18,
         maximumAge: 60,

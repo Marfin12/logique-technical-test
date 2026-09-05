@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import type {
-  ApplicationDto,
   ApplicationResponseDto,
   CursorPageDto,
   ApplicationListItemDto,

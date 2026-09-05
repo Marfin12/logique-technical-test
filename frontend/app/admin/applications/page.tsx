@@ -3,6 +3,7 @@ import { AuthenticatedShell } from "../../../components/authenticated-shell";
 import { Panel } from "../../../components/panel";
 import { StartReviewButton } from "../../../components/start-review-button";
 import { PAYMENT_FREQUENCY_LABELS } from "../../../lib/payment-labels";
+import { displayProductName } from "../../../lib/product-display";
 import { adminApplications } from "../../../lib/server-admin";
 import { requireAdmin } from "../../../lib/server-auth";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,9 @@ export default async function AdminApplicationsPage() {
       </p>
       <Panel className="mt-6 overflow-x-auto p-0">
         <table className="min-w-full text-left text-sm">
+          <caption className="sr-only">
+            Submitted and reviewed insurance applications
+          </caption>
           <thead className="bg-slate-100 text-slate-700">
             <tr>
               {[
@@ -28,7 +32,7 @@ export default async function AdminApplicationsPage() {
                 "Status",
                 "Actions",
               ].map((label) => (
-                <th key={label} className="px-4 py-3 font-semibold">
+                <th key={label} scope="col" className="px-4 py-3 font-semibold">
                   {label}
                 </th>
               ))}
@@ -58,7 +62,11 @@ export default async function AdminApplicationsPage() {
                     ? PAYMENT_FREQUENCY_LABELS[item.paymentFrequency]
                     : "—"}
                 </td>
-                <td className="px-4 py-3">{item.productName ?? "—"}</td>
+                <td className="px-4 py-3">
+                  {item.productName
+                    ? displayProductName(item.productName)
+                    : "—"}
+                </td>
                 <td className="px-4 py-3 font-semibold">
                   {item.status.replaceAll("_", " ")}
                 </td>

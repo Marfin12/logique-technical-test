@@ -11,3 +11,7 @@ export function formatInsuranceType(value: string): string {
     .map((part) => `${part.charAt(0)}${part.slice(1).toLowerCase()}`)
     .join(" ");
 }
+
+export function displayProductName(value: string): string {
+  return value.replace(/^\[TEST ONLY\]\s*/i, "");
+}

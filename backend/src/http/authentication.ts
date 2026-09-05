@@ -54,6 +54,12 @@ export function principalFrom(responseLocals: Record<string, unknown>) {
 export const sameOrigin: RequestHandler = (request, _response, next) => {
   const origin = request.header("origin");
   const host = request.header("x-forwarded-host") ?? request.header("host");
+  const fetchSite = request.header("sec-fetch-site");
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
+    return next(
+      new AppError(403, "INVALID_ORIGIN", "Request origin is not allowed."),
+    );
+  }
   if (origin && host) {
     try {
       if (new URL(origin).host !== host) {
@@ -82,12 +88,18 @@ export function loginRateLimit(options: {
   limit: number;
   windowMs: number;
   now?: () => number;
+  message?: string;
 }): RequestHandler {
   const attempts = new Map<string, { count: number; resetsAt: number }>();
   const now = options.now ?? (() => Date.now());
   return (request, _response, next) => {
     const key = request.ip || "unknown";
     const currentTime = now();
+    if (attempts.size >= 10_000) {
+      for (const [attemptKey, attempt] of attempts) {
+        if (attempt.resetsAt <= currentTime) attempts.delete(attemptKey);
+      }
+    }
     const current = attempts.get(key);
     const state =
       !current || current.resetsAt <= currentTime
@@ -100,7 +112,7 @@ export function loginRateLimit(options: {
         new AppError(
           429,
           "TOO_MANY_REQUESTS",
-          "Too many login attempts. Please try again later.",
+          options.message ?? "Too many login attempts. Please try again later.",
         ),
       );
     }

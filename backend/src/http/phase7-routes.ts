@@ -21,7 +21,11 @@ export function phase7Router(dependencies: Phase7Dependencies) {
     "/chat/messages",
     auth,
     sameOrigin,
-    loginRateLimit({ limit: 20, windowMs: 60_000 }),
+    loginRateLimit({
+      limit: 20,
+      windowMs: 60_000,
+      message: "Too many chat requests. Please try again later.",
+    }),
     validateBody(parseChatMessage),
     asyncHandler(async (_req, res) => {
       const result = await dependencies.chatService.reply(

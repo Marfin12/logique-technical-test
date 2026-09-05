@@ -3,7 +3,11 @@ import Link from "next/link";
 import { AuthenticatedShell } from "../../../components/authenticated-shell";
 import { Panel } from "../../../components/panel";
 import { PAYMENT_FREQUENCY_LABELS } from "../../../lib/payment-labels";
-import { formatInsuranceType, formatMoney } from "../../../lib/product-display";
+import {
+  displayProductName,
+  formatInsuranceType,
+  formatMoney,
+} from "../../../lib/product-display";
 import { requireUser } from "../../../lib/server-auth";
 import { productDetail } from "../../../lib/server-products";
 import { ProductApplicationForm } from "../../../components/product-application-form";
@@ -50,12 +54,12 @@ export default async function ProductDetailPage({
                   Insurance product
                 </p>
                 <h1 className="mt-2 text-3xl font-bold text-slate-950">
-                  {result.product.name}
+                  {displayProductName(result.product.name)}
                 </h1>
               </div>
               {result.product.testOnly ? (
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
-                  Test only
+                  Demo configuration
                 </span>
               ) : null}
             </div>

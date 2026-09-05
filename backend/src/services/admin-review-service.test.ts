@@ -4,6 +4,10 @@ import type {
   ApplicationDocument,
   ApplicationStatusEventDocument,
 } from "../models/persistence.js";
+import type { ApplicationRepository } from "../database/application-repository.js";
+import type { ProfileRepository } from "../database/profile-repository.js";
+import type { ProductRepository } from "../database/product-repository.js";
+import type { UserRepository } from "../database/user-repository.js";
 import { AdminReviewService } from "./admin-review-service.js";
 
 const USER = new ObjectId("650000000000000000000202");
@@ -34,7 +38,9 @@ function context(status: ApplicationDocument["status"] = "SUBMITTED") {
     findAdminVisibleById: async () =>
       application.status === "DRAFT" ? null : application,
     statusHistory: async () => events,
-    transition: async (input: any) => {
+    transition: async (
+      input: Parameters<ApplicationRepository["transition"]>[0],
+    ) => {
       if (application.status !== input.from) return null;
       application.status = input.to;
       application.version += 1;
@@ -88,10 +94,10 @@ function context(status: ApplicationDocument["status"] = "SUBMITTED") {
     application,
     events,
     service: new AdminReviewService(
-      applications as any,
-      users as any,
-      profiles as any,
-      products as any,
+      applications as unknown as ApplicationRepository,
+      users as unknown as UserRepository,
+      profiles as unknown as ProfileRepository,
+      products as unknown as ProductRepository,
       undefined,
       () => new Date("2026-01-02T00:00:00Z"),
     ),

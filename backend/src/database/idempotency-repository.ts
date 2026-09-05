@@ -16,7 +16,7 @@ interface ReserveInput {
 export class IdempotencyRepository {
   constructor(private readonly db: Db) {}
 
-  async reserve(input: ReserveInput, session: ClientSession) {
+  async reserve(input: ReserveInput, session?: ClientSession) {
     const collection =
       this.db.collection<IdempotencyRecordDocument>("idempotencyRecords");
     const identity = {

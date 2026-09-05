@@ -1,6 +1,10 @@
 import type { ApplicationDto } from "@insurance/contracts";
 import { PAYMENT_FREQUENCY_LABELS } from "../lib/payment-labels";
-import { formatInsuranceType, formatMoney } from "../lib/product-display";
+import {
+  displayProductName,
+  formatInsuranceType,
+  formatMoney,
+} from "../lib/product-display";
 
 const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
@@ -34,7 +38,7 @@ export function ApplicationProgress({
         </p>
         <h2 className="mt-1 text-xl font-bold text-slate-950">
           {typeof product.name === "string"
-            ? product.name
+            ? displayProductName(product.name)
             : `Product ${application.productId.slice(-6)}`}
         </h2>
         <p className="mt-2 text-slate-600">

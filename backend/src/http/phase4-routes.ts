@@ -1,7 +1,12 @@
 import { Router } from "express";
-import type { ApplicationResponseDto } from "@insurance/contracts";
+import {
+  APPLICATION_STATUSES,
+  type ApplicationResponseDto,
+  type ApplicationStatus,
+} from "@insurance/contracts";
 import type { SessionCodec } from "../domain/session.js";
-import { authentication, principalFrom } from "./authentication.js";
+import { DomainValidationError } from "../domain/errors.js";
+import { authentication, principalFrom, sameOrigin } from "./authentication.js";
 import { asyncHandler } from "./middleware.js";
 import type { ApplicationService } from "../services/application-service.js";
 
@@ -9,6 +14,18 @@ export interface Phase4Dependencies {
   applicationService: ApplicationService;
   sessionCodec: SessionCodec;
 }
+
+function applicationStatus(value: unknown): ApplicationStatus | undefined {
+  if (value === undefined) return undefined;
+  if (
+    typeof value === "string" &&
+    APPLICATION_STATUSES.some((status) => status === value)
+  ) {
+    return value as ApplicationStatus;
+  }
+  throw new DomainValidationError("Invalid application status filter.");
+}
+
 export function phase4Router(dependencies: Phase4Dependencies) {
   const router = Router();
   const auth = authentication(dependencies.sessionCodec);
@@ -16,10 +33,7 @@ export function phase4Router(dependencies: Phase4Dependencies) {
     "/me/applications",
     auth,
     asyncHandler(async (req, res) => {
-      const status =
-        typeof req.query.status === "string"
-          ? (req.query.status as any)
-          : undefined;
+      const status = applicationStatus(req.query.status);
       res.json(
         await dependencies.applicationService.list(
           principalFrom(res.locals),
@@ -30,6 +44,7 @@ export function phase4Router(dependencies: Phase4Dependencies) {
   );
   router.post(
     "/me/applications/drafts",
+    sameOrigin,
     auth,
     asyncHandler(async (req, res) => {
       const result = await dependencies.applicationService.createDraft(
@@ -44,6 +59,7 @@ export function phase4Router(dependencies: Phase4Dependencies) {
   );
   router.post(
     "/me/applications/:id/submit",
+    sameOrigin,
     auth,
     asyncHandler(async (req, res) => {
       const id = Array.isArray(req.params.id)
@@ -54,11 +70,9 @@ export function phase4Router(dependencies: Phase4Dependencies) {
         id,
         req.header("Idempotency-Key") ?? undefined,
       );
-      res
-        .status(result.reused ? 200 : 200)
-        .json({
-          application: result.application,
-        } satisfies ApplicationResponseDto);
+      res.status(result.reused ? 200 : 200).json({
+        application: result.application,
+      } satisfies ApplicationResponseDto);
     }),
   );
   router.get(
@@ -78,6 +92,7 @@ export function phase4Router(dependencies: Phase4Dependencies) {
   );
   router.patch(
     "/me/applications/:id/draft",
+    sameOrigin,
     auth,
     asyncHandler(async (req, res) => {
       const id = Array.isArray(req.params.id)
@@ -94,6 +109,7 @@ export function phase4Router(dependencies: Phase4Dependencies) {
   );
   router.delete(
     "/me/applications/:id/draft",
+    sameOrigin,
     auth,
     asyncHandler(async (req, res) => {
       const id = Array.isArray(req.params.id)

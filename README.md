@@ -93,7 +93,7 @@ The verifier drops only its dedicated `insurance_phase1_verify` database when it
 docker compose --profile tools run --rm seed
 ```
 
-Every seeded product is visibly marked `[TEST ONLY]` and must not be treated as approved insurance or rating policy.
+Every seeded product is visibly marked as a demo configuration and remains `testOnly: true` in MongoDB. It must not be treated as approved insurance or rating policy.
 
 Phase 1 provides canonical shared enums and DTOs, MongoDB JSON Schema validators and indexes, transactional repository primitives, decimal-safe money serialization, idempotency fingerprints and records, and keyset-paginated application queries. It does not expose user-facing product or application endpoints yet; those are introduced by later phases.
 
@@ -133,7 +133,7 @@ Sign in as `profiled.user@example.test`. Its default monthly/recurring profile m
 
 Change that profile to `Quarterly (3 Months)` and `One-time`. The health fixture becomes ineligible and disappears, while the life fixture remains visible with a recalculated premium. Directly opening an ineligible or inactive product returns a safe reason code instead of exposing hidden product configuration.
 
-All eligibility limits, rates, frequency factors, method factors, and rounding settings in the repository are explicitly `[TEST ONLY]` fixtures. They are not approved insurance business values.
+All eligibility limits, rates, frequency factors, method factors, and rounding settings in the repository are demo fixtures with `testOnly: true`. They are not approved insurance business values.
 
 ## Documentation
 
